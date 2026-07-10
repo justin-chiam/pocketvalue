@@ -42,7 +42,7 @@ The Vite dev server prints its local URL (typically `http://localhost:5173`).
 
 The app has two routes, both served from the same build:
 
-- `/` — landing page (`frontend/src/pages/Landing.jsx`)
+- `/` — "Still Good" landing page (`frontend/src/pages/Landing.jsx`): hero with an example device assessment, the e-waste problem, how it works, the four outcomes (repair / resell / donate / recycle), why it's different, closing CTA
 - `/app` — the tool itself (`frontend/src/pages/AppPage.jsx`)
 
 ## Linting

@@ -49,6 +49,8 @@ response.text
 
 Landing and app are kept as distinct pages/components/files in the same build and deploy — not separate directories or deployments.
 
+The product is presented as **Still Good** on the landing page. The landing has its own design system scoped under the `.landing` class in `Landing.css` (stone/ink/copper palette; Newsreader, Instrument Sans, and IBM Plex Mono loaded via Google Fonts in `index.html`). It escapes the centered `#root` column from `index.css` via `:has(.landing)` overrides and is light-scheme only; the rest of the app keeps the global styles, including dark mode.
+
 ## Status
 
-`backend/index.js` exposes `GET /api/health` and a working `POST /api/chat` example that proxies to Gemini. `frontend` has a landing page and an app page wired up as described above; `AppPage.jsx` currently reuses the Gemini chat example as a placeholder for the real photograph-a-device tool flow.
+`backend/index.js` exposes `GET /api/health` and a working `POST /api/chat` example that proxies to Gemini. `frontend` has a polished "Still Good" landing page at `/` (hero with example assessment card, problem, how it works, four outcomes, why it's different, closing CTA) and an app page wired up as described above; `AppPage.jsx` currently reuses the Gemini chat example as a placeholder for the real photograph-a-device tool flow.
