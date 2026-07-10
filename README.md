@@ -40,6 +40,17 @@ npm run dev
 
 The Vite dev server prints its local URL (typically `http://localhost:5173`).
 
+## Linting
+
+Each app lints independently:
+
+```bash
+cd backend && npm run lint
+cd frontend && npm run lint
+```
+
+A GitHub Actions workflow (`.github/workflows/lint.yml`) runs both on every push to `main` and on pull requests.
+
 ## Notes
 
 - Each app has its own `package.json` — install and run them independently, there's no root-level install step.

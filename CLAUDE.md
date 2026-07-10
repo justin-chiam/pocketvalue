@@ -12,11 +12,16 @@ Monorepo with a separate `backend` and `frontend`, no shared root package.json. 
 Backend (from `backend/`):
 - `npm run dev` — start with nodemon (auto-restart)
 - `npm start` — start with node
+- `npm run lint` — ESLint
 
 Frontend (from `frontend/`):
 - `npm run dev` — Vite dev server
 - `npm run build` — production build
 - `npm run lint` — ESLint
+
+## CI
+
+`.github/workflows/lint.yml` runs `npm run lint` for both `backend` and `frontend` on push to `main` and on every pull request.
 
 ## Environment
 
