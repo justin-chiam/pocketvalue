@@ -4,7 +4,7 @@ Backend (Express + Google Gemini) and frontend (React + Vite) scaffold.
 
 ## Tech stack
 
-- **Frontend**: React 19, Vite, plain JavaScript (JSX)
+- **Frontend**: React 19, Vite, plain JavaScript (JSX), `react-router-dom`
 - **Backend**: Node.js (ESM), Express 5
 - **AI**: Google Gemini (`gemini-2.5-flash`) via the `@google/genai` SDK
 - **Other**: `dotenv` (env config), `cors` (cross-origin requests), `nodemon` (backend dev auto-restart)
@@ -39,6 +39,11 @@ npm run dev
 ```
 
 The Vite dev server prints its local URL (typically `http://localhost:5173`).
+
+The app has two routes, both served from the same build:
+
+- `/` — landing page (`frontend/src/pages/Landing.jsx`)
+- `/app` — the tool itself (`frontend/src/pages/AppPage.jsx`)
 
 ## Linting
 

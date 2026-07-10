@@ -5,7 +5,7 @@ Monorepo with a separate `backend` and `frontend`, no shared root package.json. 
 ## Stack
 
 - **backend**: Node.js (ESM), Express 5, Google Gemini via `@google/genai`, `dotenv`, `cors`. Entry point `backend/index.js`.
-- **frontend**: React 19 + Vite, plain JS (`.jsx`, not TypeScript).
+- **frontend**: React 19 + Vite, plain JS (`.jsx`, not TypeScript), `react-router-dom` for client-side routing.
 
 ## Commands
 
@@ -41,6 +41,14 @@ const response = await ai.models.generateContent({
 response.text
 ```
 
+## Frontend routes
+
+`frontend/src/App.jsx` defines two routes via `react-router-dom`:
+- `/` — `frontend/src/pages/Landing.jsx`, the marketing/pitch page (hero, "how it works", "Try it" CTA).
+- `/app` — `frontend/src/pages/AppPage.jsx`, the actual tool.
+
+Landing and app are kept as distinct pages/components/files in the same build and deploy — not separate directories or deployments.
+
 ## Status
 
-Both apps are scaffolds. `backend/index.js` exposes `GET /api/health` and a working `POST /api/chat` example that proxies to Gemini. `frontend/src/App.jsx` is still the unmodified Vite template — replace it with the actual UI.
+`backend/index.js` exposes `GET /api/health` and a working `POST /api/chat` example that proxies to Gemini. `frontend` has a landing page and an app page wired up as described above; `AppPage.jsx` currently reuses the Gemini chat example as a placeholder for the real photograph-a-device tool flow.
