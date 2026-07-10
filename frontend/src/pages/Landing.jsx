@@ -320,7 +320,7 @@ function Landing() {
 
       <footer className="lp-footer">
         <span className="wordmark">Still Good</span>
-        <span>Built at a hackathon · powered by Gemini</span>
+        <span>Built at the CSESoc Flagship Hackathon 2026 · powered by Gemini</span>
       </footer>
     </div>
   )
