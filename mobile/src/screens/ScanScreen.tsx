@@ -115,6 +115,7 @@ export function ScanScreen({ capture, onDone }: Props) {
         ref={cameraRef}
         style={styles.camera}
         facing={facing}
+        animateShutter={false}
         zoom={Platform.OS === 'android' ? 0 : undefined}
         selectedLens={selectedLens}
         onCameraReady={selectNormalRearLens}
