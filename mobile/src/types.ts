@@ -7,7 +7,7 @@ export const SLOT_LABELS: Record<Slot, string> = {
 }
 
 export type PhoneCondition = 'good' | 'poor' | 'excellent' | 'new'
-export const CONDITIONS: PhoneCondition[] = ['new', 'excellent', 'good', 'poor']
+export const CONDITIONS: PhoneCondition[] = ['poor', 'good', 'excellent', 'new']
 
 export type RecommendationAction = 'fix' | 'sell' | 'tradeIn' | 'donate' | 'recycle'
 
