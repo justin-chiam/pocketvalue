@@ -257,6 +257,92 @@ const recommendSchema = {
       description:
         '2–3 sentences (80 words max) on repairing this device: what likely needs fixing and whether the cost is worth it.',
     },
+    repairPlan: {
+      type: Type.OBJECT,
+      description: 'A practical, device-specific repair plan. All money values are AUD.',
+      properties: {
+        title: {
+          type: Type.STRING,
+          description:
+            'A concise plan title naming all worthwhile fixes, e.g. "Replace the battery and screen".',
+        },
+        fixes: {
+          type: Type.ARRAY,
+          description:
+            'One to three distinct, evidence-based fixes. Include multiple fixes when separate faults are supported.',
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              title: {
+                type: Type.STRING,
+                description: 'Concise name for this individual fix, e.g. "Replace the battery".',
+              },
+              steps: {
+                type: Type.ARRAY,
+                description:
+                  'Three to five concise bullet points explaining difficulty, key steps, and when to use a professional.',
+                items: { type: Type.STRING },
+              },
+              guide: {
+                type: Type.OBJECT,
+                description: 'One relevant repair-guide search for this exact device and fix.',
+                properties: {
+                  title: { type: Type.STRING, description: 'Specific guide title.' },
+                  description: {
+                    type: Type.STRING,
+                    description: 'One sentence on what the tutorial covers and who it suits.',
+                  },
+                  searchQuery: {
+                    type: Type.STRING,
+                    description:
+                      'A concise search query containing only the exact device model and repair. Never include the word iFixit.',
+                  },
+                },
+                required: ['title', 'description', 'searchQuery'],
+              },
+              estimatedDiyCostAud: {
+                type: Type.OBJECT,
+                description: 'Estimated total parts and basic tools cost for this DIY repair.',
+                properties: {
+                  low: { type: Type.NUMBER },
+                  high: { type: Type.NUMBER },
+                },
+                required: ['low', 'high'],
+              },
+              estimatedProfessionalCostAud: {
+                type: Type.OBJECT,
+                description:
+                  'Estimated total price from a reputable independent professional for this repair.',
+                properties: {
+                  low: { type: Type.NUMBER },
+                  high: { type: Type.NUMBER },
+                },
+                required: ['low', 'high'],
+              },
+              projectedValueIncreaseAud: {
+                type: Type.OBJECT,
+                description:
+                  'Conservative, non-overlapping contribution this fix makes to private resale value.',
+                properties: {
+                  low: { type: Type.NUMBER },
+                  high: { type: Type.NUMBER },
+                },
+                required: ['low', 'high'],
+              },
+            },
+            required: [
+              'title',
+              'steps',
+              'guide',
+              'estimatedDiyCostAud',
+              'estimatedProfessionalCostAud',
+              'projectedValueIncreaseAud',
+            ],
+          },
+        },
+      },
+      required: ['title', 'fixes'],
+    },
     sell: {
       type: Type.STRING,
       description: '2–3 sentences (80 words max) on selling it privately: expected price, effort, best channels.',
@@ -274,7 +360,7 @@ const recommendSchema = {
       description: '2–3 sentences (80 words max) on recycling it responsibly and when that is the right call.',
     },
   },
-  required: ['recommended', ...RECOMMENDATION_ACTIONS],
+  required: ['recommended', ...RECOMMENDATION_ACTIONS, 'repairPlan'],
 }
 
 app.post('/api/recommend', async (req, res) => {
@@ -302,7 +388,7 @@ app.post('/api/recommend', async (req, res) => {
     .filter(Boolean)
     .join('; ')
 
-  const prompt = `You are advising the owner of a used device in Australia on what to do with it. ${facts}. For each of the five actions — fix, sell, trade in, donate, recycle — write 2–3 sentences (80 words max) tailored to this specific device and its condition, explaining what that path looks like and its trade-offs (use AUD for any amounts). If the battery health is significantly degraded (well below 100%) but the device is otherwise in good shape, weigh a battery replacement specifically in the "fix" blurb and factor it into which action you recommend overall. Then pick the single action you would recommend for this device.`
+  const prompt = `You are advising the owner of a used device in Australia on what to do with it. ${facts}. For each of the five actions — fix, sell, trade in, donate, recycle — write 2–3 sentences (80 words max) tailored to this specific device and its condition, explaining what that path looks like and its trade-offs (use AUD for any amounts). Also produce a structured repairPlan with one fix for every distinct, worthwhile fault supported by the supplied evidence, up to three fixes. For example, if the battery is degraded and the screen is broken, include separate battery and screen fixes. Each fix needs three to five concise steps, one device-specific guide search, separate realistic cost ranges for DIY parts/tools and an independent professional repairer, and a conservative projected resale-value contribution that does not overlap with the contributions of other fixes. The guide searchQuery must contain only the device model and repair terms; never add "iFixit" to the query. Do not invent faults. If there is no clear defect, return one professional diagnostic/maintenance fix with appropriately conservative values. If the battery health is significantly degraded (well below 100%), include battery replacement as its own fix and factor it into which action you recommend overall. Then pick the single action you would recommend for this device.`
 
   try {
     const response = await ai.models.generateContent({
