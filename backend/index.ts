@@ -41,7 +41,7 @@ const imagePart = (file: Express.Multer.File) => ({
 })
 
 const devicePrompt =
-  'These are photos of the front and back of a device. If a third photo is included, it shows the device\'s software About screen (e.g. iOS Settings > General > About) — use it to pin down the exact model, storage, and version. Identify the make and model, rate its visible condition (poor, good, excellent, or new), and estimate its used resale value in USD as a low–high range.'
+  'These are photos of the front and back of a device. If a third photo is included, it shows the device\'s software About screen (e.g. iOS Settings > General > About) — use it to pin down the exact model, storage, and version. Identify the make and model, rate its visible condition (poor, good, excellent, or new), and estimate its used resale value in Australian dollars (AUD) as a low–high range.'
 
 // Constrained decoding: Gemini can only emit JSON matching this schema.
 const deviceSchema = {
@@ -53,7 +53,7 @@ const deviceSchema = {
       type: Type.STRING,
       enum: ['poor', 'good', 'excellent', 'new'],
     },
-    resaleValueUsd: {
+    resaleValueAud: {
       type: Type.OBJECT,
       properties: {
         low: { type: Type.NUMBER },
@@ -62,7 +62,7 @@ const deviceSchema = {
       required: ['low', 'high'],
     },
   },
-  required: ['make', 'model', 'condition', 'resaleValueUsd'],
+  required: ['make', 'model', 'condition', 'resaleValueAud'],
 }
 
 app.post('/api/device', deviceUpload, async (req, res) => {
@@ -109,7 +109,7 @@ type PhoneCondition = 'good' | 'poor' | 'excellent' | 'new'
 
 interface DevicePreview {
   model: string
-  resaleValueUsd: { low: number; high: number }
+  resaleValueAud: { low: number; high: number }
   ramGb: number
   storageGb: number
   condition: PhoneCondition
@@ -117,7 +117,7 @@ interface DevicePreview {
 }
 
 const previewPrompt =
-  "These are photos of the front and back of a phone or other tech device. If a third photo is included, it shows the device's software About screen (e.g. iOS Settings > General > About) — use it to pin down the exact model and storage. Identify the device, estimate its specs and used resale value, rate its visible condition, and write a short description (under 50 words) focused on the physical condition you can actually see in the photos — scratches, dents, cracked screen or glass, worn edges, missing parts. Do not include the release year."
+  "These are photos of the front and back of a phone or other tech device. If a third photo is included, it shows the device's software About screen (e.g. iOS Settings > General > About) — use it to pin down the exact model and storage. Identify the device, estimate its specs and its used resale value in Australian dollars (AUD), rate its visible condition, and write a short description (under 50 words) focused on the physical condition you can actually see in the photos — scratches, dents, cracked screen or glass, worn edges, missing parts. Do not include the release year."
 
 const previewSchema = {
   type: Type.OBJECT,
@@ -126,7 +126,7 @@ const previewSchema = {
       type: Type.STRING,
       description: 'Make and model, e.g. "iPhone 14 Pro". No year.',
     },
-    resaleValueUsd: {
+    resaleValueAud: {
       type: Type.OBJECT,
       properties: {
         low: { type: Type.NUMBER },
@@ -146,7 +146,7 @@ const previewSchema = {
         'Under 50 words. Visible physical condition details only (e.g. cracked screen, scratches, dents).',
     },
   },
-  required: ['model', 'resaleValueUsd', 'ramGb', 'storageGb', 'condition', 'description'],
+  required: ['model', 'resaleValueAud', 'ramGb', 'storageGb', 'condition', 'description'],
 }
 
 app.post('/api/preview', deviceUpload, async (req, res) => {
@@ -187,6 +187,52 @@ app.post('/api/preview', deviceUpload, async (req, res) => {
   }
 })
 
-app.listen(port, () => {
+// Re-estimate resale value from (possibly user-edited) form fields.
+const estimateSchema = {
+  type: Type.OBJECT,
+  properties: {
+    low: { type: Type.NUMBER },
+    high: { type: Type.NUMBER },
+  },
+  required: ['low', 'high'],
+}
+
+app.post('/api/estimate', async (req, res) => {
+  const { model, ramGb, storageGb, condition } = req.body ?? {}
+  const ram = Number(ramGb)
+  const storage = Number(storageGb)
+
+  if (typeof model !== 'string' || !model.trim() || !Number.isFinite(ram) || !Number.isFinite(storage)) {
+    res.status(400).json({ error: 'model (string), ramGb and storageGb (numbers) are required' })
+    return
+  }
+
+  const prompt = `Estimate the current used resale value in Australian dollars (AUD), as a low–high range, for this device: ${model.trim()}, ${ram} GB RAM, ${storage} GB storage${typeof condition === 'string' && condition ? `, in ${condition} condition` : ''}.`
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: estimateSchema,
+      },
+    })
+    res.json(JSON.parse(response.text ?? '{}'))
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Gemini request failed' })
+  }
+})
+
+const server = app.listen(port, () => {
   console.log(`Backend listening on http://localhost:${port}`)
 })
+
+// Node closes idle keep-alive sockets after 5s by default, but iOS pools
+// them for ~60s — a POST sent down a socket the server just closed dies
+// with "Network request failed" (POSTs are never auto-retried). Keep
+// sockets alive longer than any client pool holds them.
+server.keepAliveTimeout = 75_000
+// Must exceed keepAliveTimeout, or Node can reset sockets mid-request.
+server.headersTimeout = 80_000

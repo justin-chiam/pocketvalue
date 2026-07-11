@@ -6,7 +6,7 @@ Monorepo with separate `backend`, `frontend`, and `mobile` apps, no shared root 
 
 - **backend**: Node.js (ESM), TypeScript (run with `tsx`, no build step), Express 5, Google Gemini via `@google/genai` through Vertex AI, `dotenv`, `cors`, `multer`. Entry point `backend/index.ts`.
 - **frontend**: React 19 + Vite, plain JS (`.jsx`, not TypeScript), `react-router-dom` for client-side routing.
-- **mobile**: Expo SDK 54 (React Native), TypeScript, `expo-camera`. Entry point `mobile/App.tsx`.
+- **mobile**: Expo SDK 54 (React Native), TypeScript, `expo-camera`. Entry point `mobile/App.tsx` (thin composition root); code lives in `mobile/src/` split into `screens/` (ScanScreen, PreviewSheet; a recommendation view is planned), `components/`, `hooks/` (`usePhotoCapture`, `usePreviewForm`), `api.ts`, and `types.ts`.
 
 ## Commands
 
