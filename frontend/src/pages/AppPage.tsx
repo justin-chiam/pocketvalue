@@ -1,7 +1,12 @@
-import { useState } from 'react'
+import { useState, type SubmitEvent } from 'react'
 import './AppPage.css'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+
+interface ChatResponse {
+  text?: string
+  error?: string
+}
 
 function AppPage() {
   const [prompt, setPrompt] = useState('')
@@ -9,7 +14,7 @@ function AppPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!prompt.trim() || loading) return
 
@@ -23,15 +28,15 @@ function AppPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
       })
-      const data = await res.json()
+      const data: ChatResponse = await res.json()
 
       if (!res.ok) {
         throw new Error(data.error || 'Request failed')
       }
 
-      setResponse(data.text)
+      setResponse(data.text ?? '')
     } catch (err) {
-      setError(err.message)
+      setError(err instanceof Error ? err.message : 'Request failed')
     } finally {
       setLoading(false)
     }

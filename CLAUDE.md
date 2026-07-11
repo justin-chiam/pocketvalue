@@ -18,7 +18,8 @@ Backend (from `backend/`):
 
 Frontend (from `frontend/`):
 - `npm run dev` — Vite dev server
-- `npm run build` — production build
+- `npm run build` — `tsc -b` then Vite production build
+- `npm run typecheck` — `tsc -b`
 - `npm run lint` — ESLint
 
 Mobile (from `mobile/`):
@@ -55,9 +56,9 @@ Note: Vertex AI was renamed "Gemini Enterprise Agent Platform" in the GCP consol
 
 ## Frontend routes
 
-`frontend/src/App.jsx` defines two routes via `react-router-dom`:
-- `/` — `frontend/src/pages/Landing.jsx`, the marketing/pitch page (hero, "how it works", "Try it" CTA).
-- `/app` — `frontend/src/pages/AppPage.jsx`, the actual tool.
+`frontend/src/App.tsx` defines two routes via `react-router-dom`:
+- `/` — `frontend/src/pages/Landing.tsx`, the marketing/pitch page (hero, "how it works", "Try it" CTA).
+- `/app` — `frontend/src/pages/AppPage.tsx`, the actual tool.
 
 Landing and app are kept as distinct pages/components/files in the same build and deploy — not separate directories or deployments.
 

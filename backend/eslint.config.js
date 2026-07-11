@@ -4,6 +4,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig } from 'eslint/config'
 
 export default defineConfig([
+  globalIgnores(['dist']),
   {
     files: ['**/*.{js,ts}'],
     extends: [js.configs.recommended, tseslint.configs.recommended],
