@@ -1,89 +1,1290 @@
-#hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  padding: 64px 20px;
-  text-align: center;
-}
+/* Landing page design system, scoped to .landing.
+   Palette: paper-light with ink type and a single pine-green accent.
+   Display face: Bricolage Grotesque. Spec labels: IBM Plex Mono. */
 
-#hero .tagline {
-  max-width: 520px;
-  font-size: 18px;
-  color: var(--text);
-}
-
-#hero .cta {
-  display: inline-flex;
-  font-size: 16px;
-  font-weight: 500;
-  padding: 12px 28px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  text-decoration: none;
-  cursor: pointer;
-  transition: border-color 0.3s;
-}
-
-#hero .cta:hover {
-  border-color: var(--accent-border);
-}
-
-#how-it-works {
-  padding: 32px 20px 64px;
-  border-top: 1px solid var(--border);
-}
-
-#how-it-works h2 {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.steps {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 0;
-  list-style: none;
+#root:has(.landing) {
+  width: 100%;
+  max-width: none;
+  border-inline: none;
   text-align: left;
+}
 
-  @media (max-width: 700px) {
-    grid-template-columns: 1fr;
+.landing,
+.landing *,
+.landing *::before,
+.landing *::after {
+  box-sizing: border-box;
+}
+
+.landing {
+  --paper: #ffffff;
+  --surface: #ffffff;
+  --ink: #191c1a;
+  --body-c: #494f4c;
+  --muted: #6a716d;
+  --line: #e5e7e6;
+  --pine: #1c5b45;
+  --cta-bg: #1c5b45;
+  --cta-text: #f2f7f4;
+  --stamp: #1c5b45;
+  --card-shadow: 0 24px 48px -24px rgba(25, 32, 28, 0.25);
+
+  --display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui,
+    sans-serif;
+  --body-f: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono-f: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+  color-scheme: light;
+  background: var(--paper);
+  color: var(--body-c);
+  font-family: var(--body-f);
+  font-size: 17px;
+  line-height: 1.6;
+  letter-spacing: 0;
+  overflow-x: clip;
+}
+
+.landing h1,
+.landing h2,
+.landing h3 {
+  font-family: var(--display);
+  color: var(--ink);
+  text-wrap: balance;
+  margin: 0;
+}
+
+.landing p {
+  margin: 0;
+}
+
+.landing .container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-inline: 24px;
+}
+
+/* ---------- Reveal motion ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing .will-reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--d, 0s);
+  }
+
+  .landing .will-reveal.in {
+    opacity: 1;
+    transform: none;
   }
 }
 
-.steps li {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 20px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+/* ---------- Nav ---------- */
+
+.landing .nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in oklab, var(--paper) 88%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
 }
 
-.step-number {
+.landing .nav-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.landing .wordmark {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.landing .nav-cta {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+  text-decoration: none;
+  padding: 9px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  transition:
+    border-color 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.landing .nav-cta:hover {
+  border-color: var(--pine);
+  background: color-mix(in oklab, var(--pine) 8%, transparent);
+}
+
+/* ---------- Hero ---------- */
+
+.landing .hero {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 56px 24px 96px;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 56px;
+  align-items: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing .hero-copy,
+  .landing .ticket {
+    animation: hero-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .landing .ticket {
+    animation-delay: 0.15s;
+  }
+
+  @keyframes hero-enter {
+    from {
+      opacity: 0;
+      transform: translateY(26px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+.landing h1 {
+  font-size: clamp(2.5rem, 5.4vw, 4.15rem);
+  line-height: 1.04;
+  letter-spacing: -0.028em;
+  font-weight: 640;
+  font-variation-settings: 'wdth' 90;
+}
+
+.landing h1 em {
+  font-style: italic;
+  color: var(--pine);
+  line-height: 1.1;
+  padding-bottom: 0.06em;
+  display: inline-block;
+}
+
+.landing .hero-sub {
+  margin-top: 24px;
+  font-size: 19px;
+  max-width: 46ch;
+}
+
+.landing .hero-actions {
+  margin-top: 36px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.landing .cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--display);
+  font-weight: 650;
+  font-size: 17px;
+  color: var(--cta-text);
+  background: var(--cta-bg);
+  text-decoration: none;
+  padding: 15px 30px;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.landing .cta svg {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.landing .cta:hover svg {
+  transform: translateX(4px);
+}
+
+.landing .cta:active {
+  transform: scale(0.97);
+}
+
+.landing .cta-quiet {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 3px;
+  transition: border-color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.landing .cta-quiet:hover {
+  border-color: var(--pine);
+}
+
+/* ---------- Ticket (signature element) ---------- */
+
+.landing .ticket {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: var(--card-shadow);
+  rotate: 1.2deg;
+  max-width: 430px;
+  justify-self: end;
+  width: 100%;
+}
+
+.landing .ticket-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.landing .ticket-label {
+  font-family: var(--mono-f);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.landing .ticket-label svg {
+  color: var(--pine);
+}
+
+.landing .ticket-device {
+  font-family: var(--display);
+  font-size: 26px;
+  font-weight: 640;
+  color: var(--ink);
+  margin-top: 18px;
+  letter-spacing: -0.015em;
+}
+
+.landing .ticket-year {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.landing .ticket-rows {
+  margin: 20px 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.landing .ticket-rows > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 11px 0;
+}
+
+.landing .ticket-rows > div + div {
+  border-top: 1px solid var(--line);
+}
+
+.landing .ticket-rows dt {
+  font-family: var(--mono-f);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.landing .ticket-rows dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 15px;
+  text-align: right;
+}
+
+.landing .grade {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--pine) 14%, transparent);
+  color: var(--pine);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 14px;
+  margin-right: 6px;
+  vertical-align: -5px;
+}
+
+.landing .ticket-verdict {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--pine) 9%, var(--surface));
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.landing .ticket-verdict p {
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.landing .ticket-verdict strong {
+  color: var(--ink);
+}
+
+.landing .stamp {
+  flex-shrink: 0;
+  font-family: var(--mono-f);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--stamp);
+  border: 2px solid var(--stamp);
+  border-radius: 6px;
+  padding: 8px 10px;
+  rotate: -6deg;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='white' opacity='0.92'/%3E%3C/svg%3E");
+}
+
+/* ---------- Problem (color block) ---------- */
+
+.landing .problem {
+  border-top: 1px solid var(--line);
+  padding: 110px 0;
+}
+
+.landing .problem h2 {
+  color: var(--ink);
+  font-size: clamp(1.8rem, 3.6vw, 2.9rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  max-width: 22ch;
+}
+
+.landing .problem-body {
+  color: var(--body-c);
+  margin-top: 22px;
+  max-width: 52ch;
+  font-size: 18px;
+}
+
+.landing .stats {
+  margin-top: 64px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.landing .stat {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.landing .stat-figure {
+  font-family: var(--display);
+  font-size: clamp(2.4rem, 4vw, 3.4rem);
+  font-weight: 640;
+  color: var(--pine);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.landing .stat-label {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 26ch;
+}
+
+/* ---------- Story (pinned iPhone scrollytelling) ---------- */
+
+.landing .story-intro {
+  padding: 120px 24px 0;
+  text-align: center;
+}
+
+.landing .story-intro h2,
+.landing .outcomes h2,
+.landing .different h2 {
+  font-size: clamp(1.9rem, 3.4vw, 2.75rem);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-weight: 620;
+}
+
+.landing .story {
+  position: relative;
+}
+
+.landing .story-sticky {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  display: grid;
+  place-items: center;
+}
+
+.landing .chapters {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: -100dvh auto 0;
+  padding-inline: 24px;
+}
+
+.landing .chapter {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+}
+
+.landing .chapter:nth-of-type(even) {
+  justify-content: flex-end;
+}
+
+.landing .chapter-copy {
+  width: min(32vw, 400px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.landing .chapter-num {
+  font-family: var(--mono-f);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.landing .chapter-copy h3 {
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+  font-weight: 630;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+}
+
+.landing .chapter-sub {
+  font-family: var(--display);
+  font-weight: 600;
+  color: var(--pine);
+  font-size: 17px;
+}
+
+.landing .chapter-body {
+  font-size: 16px;
+}
+
+/* ---------- iPhone mockup ---------- */
+
+.landing .iphone {
+  --ps: 0.68;
+  width: calc(428px * var(--ps));
+  height: calc(868px * var(--ps));
+  filter: drop-shadow(0 24px 32px rgba(25, 32, 28, 0.22));
+}
+
+.landing .iphone .device {
+  transform: scale(var(--ps));
+  transform-origin: top left;
+}
+
+/* iPhone 14 Pro frame adapted from devices.css (MIT),
+   github.com/picturepan2/devices.css */
+
+.landing .device,
+.landing .device::before,
+.landing .device::after,
+.landing .device *,
+.landing .device *::before,
+.landing .device *::after {
+  box-sizing: border-box;
+  display: block;
+}
+
+.landing .device {
+  position: relative;
+  z-index: 1;
+}
+
+.landing .device-frame {
+  z-index: 1;
+}
+
+.landing .device-iphone-14-pro {
+  height: 868px;
+  width: 428px;
+}
+
+.landing .device-iphone-14-pro .device-frame {
+  background: #010101;
+  border: 1px solid #1b1721;
+  border-radius: 68px;
+  box-shadow:
+    inset 0 0 4px 2px #c0b7cd,
+    inset 0 0 0 6px #342c3f;
+  height: 868px;
+  padding: 19px;
+  width: 428px;
+}
+
+.landing .device-iphone-14-pro .device-screen {
+  background: var(--surface);
+  border-radius: 49px;
+  height: 830px;
+  width: 390px;
+  position: relative;
+  overflow: hidden;
+}
+
+.landing .device-iphone-14-pro .device-stripe::after,
+.landing .device-iphone-14-pro .device-stripe::before {
+  border: solid rgba(1, 1, 1, 0.25);
+  border-width: 0 7px;
+  content: '';
+  height: 7px;
+  left: 0;
+  position: absolute;
+  width: 100%;
+  z-index: 9;
+}
+
+.landing .device-iphone-14-pro .device-stripe::after {
+  top: 85px;
+}
+
+.landing .device-iphone-14-pro .device-stripe::before {
+  bottom: 85px;
+}
+
+.landing .device-iphone-14-pro .device-header {
+  background: #010101;
+  border-radius: 20px;
+  height: 35px;
+  left: 50%;
+  margin-left: -60px;
+  position: absolute;
+  top: 29px;
+  width: 120px;
+}
+
+.landing .device-iphone-14-pro .device-sensors::after,
+.landing .device-iphone-14-pro .device-sensors::before {
+  content: '';
+  position: absolute;
+}
+
+.landing .device-iphone-14-pro .device-sensors::after {
+  background: #010101;
+  border-radius: 17px;
+  height: 33px;
+  left: 50%;
+  margin-left: -60px;
+  top: 30px;
+  width: 74px;
+}
+
+.landing .device-iphone-14-pro .device-sensors::before {
+  background:
+    radial-gradient(farthest-corner at 20% 20%, #6074bf 0, transparent 40%),
+    radial-gradient(
+      farthest-corner at 80% 80%,
+      #513785 0,
+      #24555e 20%,
+      transparent 50%
+    );
   border-radius: 50%;
-  background: var(--accent-bg);
-  color: var(--accent);
-  font-family: var(--mono);
+  box-shadow: 0 0 1px 1px rgba(255, 255, 255, 0.05);
+  height: 9px;
+  left: 50%;
+  margin-left: 36px;
+  top: 42px;
+  width: 9px;
+}
+
+.landing .device-iphone-14-pro .device-btns {
+  background: #1b1721;
+  border-radius: 2px;
+  height: 32px;
+  left: -2px;
+  position: absolute;
+  top: 115px;
+  width: 3px;
+}
+
+.landing .device-iphone-14-pro .device-btns::after,
+.landing .device-iphone-14-pro .device-btns::before {
+  background: #1b1721;
+  border-radius: 2px;
+  content: '';
+  height: 62px;
+  left: 0;
+  position: absolute;
+  width: 3px;
+}
+
+.landing .device-iphone-14-pro .device-btns::after {
+  top: 60px;
+}
+
+.landing .device-iphone-14-pro .device-btns::before {
+  top: 140px;
+}
+
+.landing .device-iphone-14-pro .device-power {
+  background: #1b1721;
+  border-radius: 2px;
+  height: 100px;
+  position: absolute;
+  right: -2px;
+  top: 200px;
+  width: 3px;
+}
+
+.landing .device-iphone-14-pro .device-home::after,
+.landing .device-iphone-14-pro .device-home::before {
+  border: solid rgba(1, 1, 1, 0.25);
+  border-width: 6px 0;
+  content: '';
+  height: 6px;
+  position: absolute;
+  width: 6px;
+  z-index: 9;
+}
+
+.landing .device-iphone-14-pro .device-home::after {
+  right: 86px;
+  top: 0;
+}
+
+.landing .device-iphone-14-pro .device-home::before {
+  bottom: 0;
+  left: 86px;
+}
+
+/* status bar + home indicator, authored at native 390px scale */
+
+.landing .iphone-status {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 34px 0 42px;
+  color: var(--ink);
+}
+
+.landing .iphone[data-screen='0'] .iphone-status {
+  color: #eef4f0;
+}
+
+.landing .status-time {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.landing .status-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.landing .home-bar {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 3;
+  width: 134px;
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--ink) 60%, transparent);
+}
+
+.landing .iphone[data-screen='0'] .home-bar {
+  background: rgba(238, 244, 240, 0.75);
+}
+
+.landing .scr {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.landing .scr.on {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing .scr {
+    transition:
+      opacity 0.45s ease,
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateY(10px);
+  }
+
+  .landing .scr.on {
+    transform: none;
+  }
+}
+
+/* screen 1: viewfinder */
+
+.landing .scr-vf {
+  position: absolute;
+  inset: 0;
+  background: #101613;
+}
+
+.landing .vf-frame {
+  position: absolute;
+  inset: 19% 13% 30%;
+  border: 2px solid rgba(238, 244, 240, 0.3);
+  border-radius: 18px;
+}
+
+.landing .vf-device {
+  position: absolute;
+  inset: 24% 18%;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #29332d, #1b231e);
+}
+
+.landing .vf-chip {
+  position: absolute;
+  left: 50%;
+  bottom: 21%;
+  translate: -50% 0;
+  font-family: var(--mono-f);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(238, 244, 240, 0.75);
+  border: 1px solid rgba(238, 244, 240, 0.3);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+.landing .vf-shutter {
+  position: absolute;
+  left: 50%;
+  bottom: 5.5%;
+  translate: -50% 0;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #eef4f0;
+  box-shadow:
+    0 0 0 4px #101613,
+    0 0 0 7px rgba(238, 244, 240, 0.7);
+}
+
+/* screens 2-4: report, routes, verdict */
+
+.landing .scr-pane {
+  position: absolute;
+  inset: 0;
+  padding: 86px 26px 34px;
+  display: flex;
+  flex-direction: column;
+}
+
+.landing .scr-pill {
+  align-self: flex-start;
+  font-family: var(--mono-f);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pine);
+  background: color-mix(in oklab, var(--pine) 12%, transparent);
+  border-radius: 999px;
+  padding: 4px 11px;
+}
+
+.landing .scr-title {
+  font-family: var(--display);
+  font-size: 26px;
+  font-weight: 640;
+  color: var(--ink);
+  margin-top: 16px;
+  letter-spacing: -0.01em;
+}
+
+.landing .scr-sub {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.landing .scr-rows {
+  margin-top: 20px;
+}
+
+.landing .scr-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.landing .scr-row + .scr-row {
+  border-top: 1px solid var(--line);
+}
+
+.landing .skel {
+  display: inline-block;
+  height: 12px;
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--ink) 12%, transparent);
+}
+
+.landing .grade-mini {
+  width: 27px;
+  height: 27px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, var(--pine) 14%, transparent);
+  color: var(--pine);
+  font-family: var(--display);
+  font-weight: 700;
   font-size: 14px;
 }
 
-.steps h3 {
-  margin: 0;
-  font-size: 18px;
-  color: var(--text-h);
+.landing .scr-title-sm {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 630;
+  color: var(--ink);
+  margin-bottom: 14px;
 }
 
-.steps p {
-  color: var(--text);
+.landing .route {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 13px 15px;
+  font-size: 15.5px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.landing .route + .route {
+  margin-top: 10px;
+}
+
+.landing .route svg {
+  color: var(--pine);
+}
+
+.landing .route .skel {
+  margin-left: auto;
+}
+
+.landing .route.best {
+  background: #1c5b45;
+  border-color: #1c5b45;
+  color: #f2f7f4;
+}
+
+.landing .route.best svg {
+  color: #f2f7f4;
+}
+
+.landing .route.best em {
+  margin-left: auto;
+  font-style: normal;
+  font-family: var(--mono-f);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(242, 247, 244, 0.22);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.landing .verdict-pane {
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.landing .stamp-sm {
+  font-size: 15px;
+  padding: 8px 12px;
+}
+
+.landing .verdict-pane .skel {
+  height: 11px;
+}
+
+.landing .scr-btn {
+  margin-top: 14px;
+  font-family: var(--display);
+  font-weight: 630;
+  font-size: 15.5px;
+  color: #f2f7f4;
+  background: #1c5b45;
+  border-radius: 999px;
+  padding: 13px 22px;
+}
+
+/* ---------- Outcomes ---------- */
+
+.landing .outcomes {
+  padding: 110px 0 120px;
+}
+
+.landing .section-sub {
+  margin-top: 16px;
+  max-width: 50ch;
+  font-size: 17px;
+}
+
+.landing .outcome-grid {
+  margin-top: 48px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+
+.landing .outcome {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 26px 22px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.landing .outcome svg,
+.landing .outcome h3,
+.landing .outcome p {
+  transition: color 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  .landing .outcome:hover {
+    transform: translateY(-4px);
+    background: var(--pine);
+    border-color: var(--pine);
+  }
+
+  .landing .outcome:hover svg,
+  .landing .outcome:hover h3 {
+    color: #f2f7f4;
+  }
+
+  .landing .outcome:hover p {
+    color: #c8ddd2;
+  }
+}
+
+.landing .outcome svg {
+  color: var(--pine);
+}
+
+.landing .outcome h3 {
+  font-size: 20px;
+  font-weight: 630;
+}
+
+.landing .outcome p {
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.landing .last-resort {
+  margin-top: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  padding: 22px 26px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+}
+
+.landing .last-resort-title {
+  font-family: var(--display);
+  font-weight: 630;
+  font-size: 19px;
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: var(--pine);
+  flex-shrink: 0;
+}
+
+.landing .last-resort p {
+  font-size: 15.5px;
+}
+
+/* ---------- Why it's different ---------- */
+
+.landing .different {
+  padding: 110px 0 120px;
+  border-top: 1px solid var(--line);
+}
+
+.landing .different h2 {
+  max-width: 24ch;
+}
+
+.landing .contrast-rows {
+  margin-top: 56px;
+  display: flex;
+  flex-direction: column;
+}
+
+.landing .contrast {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr 1.1fr;
+  gap: 32px;
+  padding: 30px 0;
+  align-items: baseline;
+}
+
+.landing .contrast + .contrast {
+  border-top: 1px solid var(--line);
+}
+
+.landing .contrast h3 {
+  font-size: 21px;
+  font-weight: 630;
+  letter-spacing: -0.01em;
+}
+
+.landing .contrast .them {
+  color: var(--muted);
+  font-size: 15.5px;
+}
+
+.landing .contrast .them::before {
+  content: 'Them';
+  display: block;
+  font-family: var(--mono-f);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.landing .contrast .us {
+  color: var(--ink);
+  font-size: 15.5px;
+}
+
+.landing .contrast .us::before {
+  content: 'PocketValue';
+  display: block;
+  font-family: var(--mono-f);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--pine);
+  margin-bottom: 6px;
+}
+
+/* ---------- Closing ---------- */
+
+.landing .closing {
+  padding: 130px 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 26px;
+}
+
+.landing .closing > svg {
+  color: var(--pine);
+}
+
+.landing .closing h2 {
+  font-size: clamp(2.1rem, 4.4vw, 3.4rem);
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+  font-weight: 640;
+  max-width: 18ch;
+}
+
+/* ---------- Footer ---------- */
+
+.landing .footer {
+  border-top: 1px solid var(--line);
+  padding: 32px 24px 40px;
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.landing .footer p {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ---------- Focus visibility ---------- */
+
+.landing a:focus-visible {
+  outline: 2px solid var(--pine);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.landing .cta:focus-visible,
+.landing .nav-cta:focus-visible {
+  border-radius: 999px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1180px) {
+  .landing .iphone {
+    --ps: 0.6;
+  }
+
+  .landing .chapter-copy {
+    width: min(30vw, 380px);
+  }
+}
+
+@media (max-width: 960px) {
+  .landing .hero {
+    grid-template-columns: 1fr;
+    gap: 56px;
+    padding-top: 32px;
+    padding-bottom: 72px;
+  }
+
+  .landing .ticket {
+    justify-self: start;
+    rotate: 0.8deg;
+  }
+
+  .landing .outcome-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .landing .contrast {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+@media (max-width: 820px) {
+  .landing .story-intro {
+    padding-top: 88px;
+  }
+
+  .landing .story-sticky {
+    place-items: start center;
+    padding-top: 7dvh;
+  }
+
+  .landing .iphone {
+    --ps: 0.46;
+  }
+
+  .landing .chapter,
+  .landing .chapter:nth-of-type(even) {
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 7dvh;
+  }
+
+  .landing .chapter-copy {
+    width: 100%;
+    max-width: 440px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+  }
+}
+
+@media (max-width: 700px) {
+  .landing {
+    font-size: 16px;
+  }
+
+  .landing .hero-sub {
+    font-size: 17px;
+  }
+
+  .landing .stats {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .landing .problem {
+    padding: 80px 0;
+  }
+
+  .landing .outcomes {
+    padding: 80px 0 88px;
+  }
+
+  .landing .outcome-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing .different {
+    padding: 80px 0 88px;
+  }
+
+  .landing .closing {
+    padding: 96px 24px;
+  }
+
+  .landing .last-resort {
+    flex-direction: column;
+    gap: 8px;
+  }
 }
