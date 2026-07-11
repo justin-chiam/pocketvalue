@@ -97,7 +97,7 @@ export async function requestRecyclingLocations(input: {
   model: string
   location: string
 }): Promise<{ intro: string; locations: RecycleLocation[] }> {
-  const res = await postWithRetry(`${API_URL}/api/recycling-locations`, {
+  const res = await postWithRetry(`${API_URL}/api/recycle-locations`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
