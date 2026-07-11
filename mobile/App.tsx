@@ -28,7 +28,7 @@ export default function App() {
       {previewForm.isOpen && !recommendation.isOpen && (
         <PreviewSheet
           state={previewForm}
-          frontPhotoUri={capture.photos.front}
+          photos={capture.photos}
           onStartOver={startOver}
           onRetry={analyze}
           onContinue={recommend}

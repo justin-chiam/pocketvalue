@@ -13,7 +13,7 @@ import { AppButton } from '../components/AppButton'
 import { BottomSheet } from '../components/BottomSheet'
 import { FormSkeleton } from '../components/FormSkeleton'
 import type { PreviewFormState } from '../hooks/usePreviewForm'
-import { CONDITIONS, type PreviewForm } from '../types'
+import { CONDITIONS, SLOT_LABELS, type PreviewForm, type Slot } from '../types'
 
 const ERROR_COLOR = '#ff453a'
 const PLACEHOLDER_COLOR = '#a1a1a6'
@@ -22,7 +22,7 @@ type RequiredField = 'model' | 'ram' | 'storage' | 'battery' | 'description'
 
 type Props = {
   state: PreviewFormState
-  frontPhotoUri: string | null
+  photos: Record<Slot, string | null>
   onStartOver: () => void
   onRetry: () => void
   onContinue: () => void
@@ -30,8 +30,11 @@ type Props = {
 
 // The preview view: an iOS-style card over the camera showing a skeleton
 // while Gemini analyzes, then the auto-filled editable form.
-export function PreviewSheet({ state, frontPhotoUri, onStartOver, onRetry, onContinue }: Props) {
+export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }: Props) {
   const { submitting, form, error, estimating, setForm } = state
+  const photoEntries = (Object.entries(photos) as [Slot, string | null][]).filter(
+    (entry): entry is [Slot, string] => entry[1] !== null,
+  )
   const [attemptedContinue, setAttemptedContinue] = useState(false)
   const [focusedField, setFocusedField] = useState<RequiredField | null>(null)
   const showModelError =
@@ -87,7 +90,19 @@ export function PreviewSheet({ state, frontPhotoUri, onStartOver, onRetry, onCon
       ) : form !== null ? (
         <>
           <ScrollView contentContainerStyle={styles.scroll}>
-            {frontPhotoUri && <Image source={{ uri: frontPhotoUri }} style={styles.thumb} />}
+            {photoEntries.length > 0 && (
+              <>
+                <Text style={styles.fieldLabel}>Photos</Text>
+                <View style={styles.photoGallery}>
+                  {photoEntries.map(([slot, uri]) => (
+                    <View key={slot} style={styles.photoCard}>
+                      <Image source={{ uri }} style={styles.thumb} />
+                      <Text style={styles.photoLabel}>{SLOT_LABELS[slot]}</Text>
+                    </View>
+                  ))}
+                </View>
+              </>
+            )}
 
             <Text style={styles.fieldLabel}>Model</Text>
             <TextInput
@@ -248,13 +263,25 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   thumb: {
-    width: 88,
-    height: 88,
+    width: '100%',
+    aspectRatio: 1,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#444',
-    alignSelf: 'center',
-    marginBottom: 8,
+  },
+  photoGallery: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 4,
+  },
+  photoCard: {
+    flex: 1,
+    gap: 5,
+  },
+  photoLabel: {
+    color: '#999',
+    fontSize: 12,
+    textAlign: 'center',
   },
   fieldLabel: {
     color: '#999',
