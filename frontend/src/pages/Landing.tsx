@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import {
   ArrowRight,
+  ArrowSquareOut,
+  ArrowsClockwise,
   ArrowsLeftRight,
-  BatteryFull,
   Camera,
   HandHeart,
+  Images,
   Recycle,
   Sparkle,
   Tag,
-  WifiHigh,
   Wrench,
 } from '@phosphor-icons/react'
 import '@fontsource-variable/bricolage-grotesque/index.css'
@@ -21,25 +22,25 @@ const CHAPTERS = [
     num: '01',
     title: 'Point it at anything.',
     sub: 'The camera is the whole interface.',
-    body: 'No model numbers, no dropdowns, no forms. If you can photograph it, PocketValue can assess it.',
+    body: 'No model numbers, no manual lookups. Guided shots of the front, the back, and the About screen are all it takes.',
   },
   {
     num: '02',
     title: 'Get the full read.',
-    sub: 'Model, condition, value. In seconds.',
-    body: 'It identifies the exact device, grades condition from the photo, and prices it against the real market.',
+    sub: 'Model, specs, condition, value. In seconds.',
+    body: 'AI fills in the whole device report — model, RAM, storage, battery health, condition — and prices it against the real market. Every field stays editable, and the estimate updates as you correct it.',
   },
   {
     num: '03',
     title: 'See every route, priced.',
     sub: 'Repair, resell, trade in, donate, recycle. Side by side.',
-    body: 'Each path gets a number for your exact device, so the decision makes itself.',
+    body: 'Five cards, one per route, each written for your exact device. The best one carries the badge, so the decision makes itself.',
   },
   {
     num: '04',
     title: 'Walk away with a plan.',
-    sub: 'One verdict, clear next steps.',
-    body: 'Not a listing, not a quote. A recommendation you can act on today. Even when that means keeping it.',
+    sub: 'One tap from decided to done.',
+    body: 'Pick a route and the work is already done: a ready-to-post Marketplace listing, a costed repair plan, or real drop-off spots near you.',
   },
 ]
 
@@ -135,10 +136,14 @@ function useActiveChapter() {
 function ScreenViewfinder() {
   return (
     <div className="scr-vf">
-      <div className="vf-frame">
-        <span className="vf-device" />
-      </div>
-      <span className="vf-chip">Scanning</span>
+      <span className="vf-device">
+        <span className="vf-cam" />
+      </span>
+      <span className="vf-hint">Take a photo of the back of the device</span>
+      <span className="vf-thumb" />
+      <span className="vf-flip">
+        <ArrowsClockwise size={20} weight="bold" aria-hidden="true" />
+      </span>
       <span className="vf-shutter" />
     </div>
   )
@@ -146,78 +151,180 @@ function ScreenViewfinder() {
 
 function ScreenReport() {
   return (
-    <div className="scr-pane">
-      <span className="scr-pill">Identified</span>
-      <p className="scr-title">iPhone 11, 64&thinsp;GB</p>
-      <p className="scr-sub">Released 2019</p>
-      <div className="scr-rows">
-        <div className="scr-row">
-          <span>Condition</span>
-          <span className="grade-mini">B</span>
+    <div className="scr-cam-bg">
+      <div className="scr-sheet">
+        <span className="sheet-grab" />
+        <p className="scr-title">Device report</p>
+        <div className="field-group">
+          <span className="field-label">Photos</span>
+          <div className="report-photos">
+            <figure>
+              <span className="photo-thumb pt-front" />
+              <figcaption>Front</figcaption>
+            </figure>
+            <figure>
+              <span className="photo-thumb pt-back" />
+              <figcaption>Back</figcaption>
+            </figure>
+            <figure>
+              <span className="photo-thumb pt-about" />
+              <figcaption>About screen</figcaption>
+            </figure>
+          </div>
         </div>
-        <div className="scr-row">
-          <span>Market value</span>
-          <i className="skel" style={{ width: 76 }} />
+        <div className="field-group">
+          <span className="field-label">Model</span>
+          <span className="field">OnePlus 15</span>
         </div>
-        <div className="scr-row">
-          <span>Repair cost</span>
-          <i className="skel" style={{ width: 54 }} />
+        <div className="field-pair">
+          <div className="field-group">
+            <span className="field-label">RAM (GB)</span>
+            <span className="field">16</span>
+          </div>
+          <div className="field-group">
+            <span className="field-label">Storage (GB)</span>
+            <span className="field">512</span>
+          </div>
         </div>
-        <div className="scr-row">
-          <span>Age</span>
-          <i className="skel" style={{ width: 64 }} />
+        <div className="field-group">
+          <span className="field-label">Battery health (%)</span>
+          <span className="field">85</span>
+        </div>
+        <div className="field-group">
+          <span className="field-label">Condition</span>
+          <span className="cond-track">
+            <i className="cond-dot" />
+          </span>
+          <div className="cond-labels">
+            <span>Poor</span>
+            <span className="cur">Good</span>
+            <span>Excellent</span>
+            <span>New</span>
+          </div>
+        </div>
+        <div className="field-group">
+          <span className="field-label">Description</span>
+          <span className="field field-desc">
+            Visible smudges, no cracks. Clean back.
+          </span>
+        </div>
+        <div className="field-group">
+          <span className="field-label">Estimated resale value (AUD)</span>
+          <p className="scr-value">$750&ndash;$950</p>
+        </div>
+        <div className="sheet-actions">
+          <span className="btn-quiet">Start over</span>
+          <span className="btn-solid">Continue</span>
         </div>
       </div>
     </div>
   )
 }
 
-function ScreenRoutes() {
+function ScreenRecommend() {
   return (
-    <div className="scr-pane">
-      <p className="scr-title-sm">Your routes</p>
-      <div className="route best">
-        <Wrench size={19} weight="bold" aria-hidden="true" />
-        <span>Repair</span>
-        <em>Best</em>
+    <div className="scr-pane rec-pane">
+      <div className="rec-top">
+        <span className="rec-back">&lsaquo; Back</span>
+        <span className="rec-restart">Start over</span>
       </div>
-      <div className="route">
-        <Tag size={19} aria-hidden="true" />
-        <span>Resell</span>
-        <i className="skel" style={{ width: 46 }} />
+      <p className="scr-title">What should you do with it?</p>
+      <div className="rec-card">
+        <div className="rec-card-head">
+          <Tag size={24} aria-hidden="true" />
+          <em>Recommended</em>
+        </div>
+        <p className="rec-card-title">Resell</p>
+        <p className="rec-card-body">
+          Selling your OnePlus 15 privately is likely the best option, with an
+          estimated resale value of A$750&ndash;A$950 in its current good
+          condition. Be transparent about the 85% battery health.
+        </p>
+        <span className="rec-link">View full breakdown &rsaquo;</span>
       </div>
-      <div className="route">
-        <ArrowsLeftRight size={19} aria-hidden="true" />
-        <span>Trade in</span>
-        <i className="skel" style={{ width: 46 }} />
-      </div>
-      <div className="route">
-        <HandHeart size={19} aria-hidden="true" />
-        <span>Donate</span>
-        <i className="skel" style={{ width: 46 }} />
-      </div>
-      <div className="route">
-        <Recycle size={19} aria-hidden="true" />
-        <span>Recycle</span>
-        <i className="skel" style={{ width: 46 }} />
+      <div className="rec-dots">
+        <i />
+        <i className="on" />
+        <i />
+        <i />
+        <i />
       </div>
     </div>
   )
 }
 
-function ScreenVerdict() {
+function ScreenListing() {
   return (
-    <div className="scr-pane verdict-pane">
-      <span className="stamp stamp-sm">Keep it</span>
-      <p className="scr-title-sm">Best route: repair</p>
-      <i className="skel" style={{ width: '82%' }} />
-      <i className="skel" style={{ width: '58%' }} />
-      <span className="scr-btn">Find a repair shop</span>
+    <div className="scr-pane listing-pane">
+      <div className="listing-top">
+        <span className="listing-close">Close</span>
+        <span className="listing-copyall">Copy all</span>
+      </div>
+      <p className="scr-title">Your Marketplace listing</p>
+      <p className="listing-sub">
+        Copy each field into Facebook. Everything is based on the device
+        details you reviewed.
+      </p>
+      <div className="field-group">
+        <span className="field-label">Why sell</span>
+        <i className="skel" style={{ width: '100%' }} />
+        <i className="skel" style={{ width: '72%' }} />
+      </div>
+      <div className="copy-field">
+        <div>
+          <span className="copy-label">Title</span>
+          <p>OnePlus 15 &middot; 512GB &middot; good</p>
+        </div>
+        <span className="copy-btn">Copy</span>
+      </div>
+      <div className="copy-field">
+        <div>
+          <span className="copy-label">Price (AUD)</span>
+          <p>$950</p>
+        </div>
+        <span className="copy-btn">Copy</span>
+      </div>
+      <div className="copy-field">
+        <div>
+          <span className="copy-label">Category</span>
+          <p>Mobile phones</p>
+        </div>
+        <span className="copy-btn">Copy</span>
+      </div>
+      <div className="copy-field">
+        <div>
+          <span className="copy-label">Description</span>
+          <p className="copy-desc">
+            Well-kept OnePlus 15, 16GB/512GB, 85% battery. No cracks or
+            scratches.
+          </p>
+        </div>
+        <span className="copy-btn">Copy</span>
+      </div>
+      <div className="photo-card">
+        <div className="photo-card-head">
+          <span className="photo-card-icon">
+            <Images size={18} aria-hidden="true" />
+          </span>
+          <div>
+            <p className="photo-card-title">Add a few buyer-friendly photos</p>
+            <p className="photo-card-sub">3 scan photos taken</p>
+          </div>
+        </div>
+        <span className="photo-card-btn">Save scan photos</span>
+      </div>
+      <span className="btn-solid listing-cta">
+        Go to Facebook Marketplace
+        <ArrowSquareOut size={17} weight="bold" aria-hidden="true" />
+      </span>
+      <p className="listing-note">
+        Facebook opens separately. You&rsquo;ll review and publish there.
+      </p>
     </div>
   )
 }
 
-const SCREENS = [ScreenViewfinder, ScreenReport, ScreenRoutes, ScreenVerdict]
+const SCREENS = [ScreenViewfinder, ScreenReport, ScreenRecommend, ScreenListing]
 
 function Iphone({ active }: { active: number }) {
   return (
@@ -233,8 +340,44 @@ function Iphone({ active }: { active: number }) {
             <div className="iphone-status">
               <span className="status-time">9:41</span>
               <span className="status-icons">
-                <WifiHigh size={20} weight="bold" />
-                <BatteryFull size={26} weight="fill" />
+                <svg width="19" height="12" viewBox="0 0 19 12" aria-hidden="true">
+                  <rect x="0" y="7" width="3.4" height="5" rx="1.1" fill="currentColor" />
+                  <rect x="5.2" y="4.6" width="3.4" height="7.4" rx="1.1" fill="currentColor" />
+                  <rect x="10.4" y="2.3" width="3.4" height="9.7" rx="1.1" fill="currentColor" />
+                  <rect x="15.6" y="0" width="3.4" height="12" rx="1.1" fill="currentColor" />
+                </svg>
+                <svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true">
+                  <path
+                    d="M1.9 4.3a10.4 10.4 0 0 1 13.2 0"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M4.6 7.2a6.3 6.3 0 0 1 7.8 0"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <circle cx="8.5" cy="10.3" r="1.7" fill="currentColor" />
+                </svg>
+                <svg width="26" height="12" viewBox="0 0 26 12" fill="none" aria-hidden="true">
+                  <rect
+                    x="0.5"
+                    y="0.5"
+                    width="21.5"
+                    height="11"
+                    rx="3.3"
+                    stroke="currentColor"
+                    opacity="0.45"
+                  />
+                  <rect x="2.3" y="2.3" width="17.9" height="7.4" rx="1.8" fill="currentColor" />
+                  <path
+                    d="M23.6 4.1v3.8a2.1 2.1 0 0 0 0-3.8Z"
+                    fill="currentColor"
+                    opacity="0.45"
+                  />
+                </svg>
               </span>
             </div>
             <span className="home-bar" />
@@ -302,7 +445,7 @@ function Landing() {
             <div>
               <dt>Condition</dt>
               <dd>
-                <span className="grade">B</span> Worn battery, clean screen
+                <span className="grade">Good</span> Worn battery, clean screen
               </dd>
             </div>
             <div>
