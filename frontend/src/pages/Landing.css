@@ -285,12 +285,6 @@
   letter-spacing: -0.015em;
 }
 
-.landing .ticket-year {
-  font-size: 14px;
-  color: var(--muted);
-  margin-top: 2px;
-}
-
 .landing .ticket-rows {
   margin: 20px 0 0;
   display: flex;
@@ -324,6 +318,13 @@
   text-align: right;
 }
 
+.landing .ticket-rows .condition-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
 .landing .grade {
   display: inline-flex;
   align-items: center;
@@ -335,7 +336,7 @@
   color: var(--pine);
   font-family: var(--display);
   font-weight: 700;
-  font-size: 13.5px;
+  font-size: 14px;
   margin-right: 6px;
   vertical-align: -5px;
 }
@@ -381,51 +382,205 @@
   padding: 110px 0;
 }
 
+.landing .problem-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.78fr);
+  align-items: center;
+  gap: 120px;
+}
+
+.landing .problem-copy {
+  max-width: 480px;
+}
+
 .landing .problem h2 {
   color: var(--ink);
-  font-size: clamp(1.8rem, 3.6vw, 2.9rem);
-  line-height: 1.12;
+  font-size: clamp(1.65rem, 2.55vw, 1.9rem);
+  line-height: 1.14;
   letter-spacing: -0.02em;
   font-weight: 600;
-  max-width: 22ch;
+}
+
+.landing .problem h2 span {
+  display: block;
+  white-space: nowrap;
 }
 
 .landing .problem-body {
+  margin-top: 24px;
+  max-width: 47ch;
   color: var(--body-c);
-  margin-top: 22px;
-  max-width: 52ch;
-  font-size: 18px;
+  font-size: 17px;
+  line-height: 1.6;
 }
 
-.landing .stats {
-  margin-top: 64px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-}
-
-.landing .stat {
-  border-top: 1px solid var(--line);
-  padding-top: 18px;
+.landing .research-comparison {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: stretch;
+  gap: 12px;
 }
 
-.landing .stat-figure {
+.landing .research-time {
+  min-height: 150px;
+  padding: 22px 24px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.landing .research-time-normal {
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.landing .research-time-pocketvalue {
+  background: var(--pine);
+  color: #f2f7f4;
+}
+
+.landing .research-time-label {
+  font-family: var(--mono-f);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.landing .research-time strong {
+  margin-top: 8px;
   font-family: var(--display);
-  font-size: clamp(2.4rem, 4vw, 3.4rem);
+  font-size: clamp(2.4rem, 4vw, 3.25rem);
   font-weight: 640;
   color: var(--pine);
   letter-spacing: -0.02em;
   line-height: 1;
 }
 
-.landing .stat-label {
+.landing .research-time-caption {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.landing .research-time-pocketvalue .research-time-label,
+.landing .research-time-pocketvalue .research-time-caption {
+  color: #c8ddd2;
+}
+
+.landing .research-time-pocketvalue strong {
+  color: #f2f7f4;
+}
+
+.landing .research-arrow {
+  align-self: center;
+  color: var(--pine);
+  rotate: 90deg;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing .research-arrow {
+    animation: research-arrow 1.2s cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
+  }
+
+  @keyframes research-arrow {
+    to {
+      translate: 0 5px;
+    }
+  }
+}
+
+/* ---------- E-waste statistics ---------- */
+
+.landing .e-waste-stats {
+  padding: 110px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.landing .stats-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.landing .stats-heading h2 {
+  font-size: clamp(1.9rem, 3.4vw, 2.75rem);
+  font-weight: 620;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.landing .stats-sources {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 30px;
+  color: var(--muted);
+  font-family: var(--mono-f);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.landing .stats-sources a {
+  color: var(--pine);
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+.landing .e-waste-grid {
+  margin-top: 48px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.landing .e-waste-stat {
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.landing .e-waste-value {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.landing .e-waste-stat > span sup {
+  margin-left: 4px;
+  font-family: var(--mono-f);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.landing .e-waste-stat > span sup a {
+  color: var(--pine);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+.landing .e-waste-stat strong {
+  color: var(--pine);
+  font-family: var(--display);
+  font-size: clamp(2.4rem, 4vw, 3.4rem);
+  font-weight: 640;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.landing .e-waste-stat span {
+  max-width: 24ch;
   color: var(--muted);
   font-size: 15px;
   line-height: 1.5;
-  max-width: 26ch;
 }
 
 /* ---------- Story (pinned iPhone scrollytelling) ---------- */
@@ -442,6 +597,42 @@
   letter-spacing: -0.02em;
   line-height: 1.1;
   font-weight: 620;
+}
+
+.landing .photo-list {
+  list-style: none;
+  margin: 30px 0 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.landing .photo-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 52px;
+  padding: 10px 20px 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--body-c);
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.landing .photo-list span {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--pine) 14%, transparent);
+  color: var(--pine);
+  font-family: var(--mono-f);
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .landing .story {
@@ -483,7 +674,7 @@
 
 .landing .chapter-num {
   font-family: var(--mono-f);
-  font-size: 12px;
+  font-size: 15px;
   letter-spacing: 0.1em;
   color: var(--muted);
 }
@@ -1365,6 +1556,7 @@
 }
 
 .landing .outcome {
+  position: relative;
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 26px 22px;
@@ -1378,6 +1570,32 @@
     border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.landing .outcome.recommended {
+  border: 2px solid var(--pine);
+  background: color-mix(in oklab, var(--pine) 9%, var(--surface));
+  padding: 25px 21px;
+}
+
+.landing .outcome-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.landing .outcome-badge {
+  border: 2px solid var(--pine);
+  border-radius: 6px;
+  padding: 5px 8px;
+  color: var(--pine);
+  font-family: var(--mono-f);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
 .landing .outcome svg,
 .landing .outcome h3,
 .landing .outcome p {
@@ -1385,19 +1603,23 @@
 }
 
 @media (hover: hover) {
-  .landing .outcome:hover {
+  .landing .outcome:not(.recommended):hover {
     transform: translateY(-4px);
     background: var(--pine);
     border-color: var(--pine);
   }
 
-  .landing .outcome:hover svg,
-  .landing .outcome:hover h3 {
+  .landing .outcome:not(.recommended):hover svg,
+  .landing .outcome:not(.recommended):hover h3 {
     color: #f2f7f4;
   }
 
-  .landing .outcome:hover p {
+  .landing .outcome:not(.recommended):hover p {
     color: #c8ddd2;
+  }
+
+  .landing .outcome.recommended:hover {
+    transform: translateY(-4px);
   }
 }
 
@@ -1590,9 +1812,25 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .landing .e-waste-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .landing .contrast {
     grid-template-columns: 1fr;
     gap: 18px;
+  }
+}
+
+@media (max-width: 900px) {
+  .landing .problem-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+
+  .landing .research-comparison {
+    width: 100%;
+    max-width: 480px;
   }
 }
 
@@ -1637,13 +1875,22 @@
     font-size: 17px;
   }
 
-  .landing .stats {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-
   .landing .problem {
     padding: 80px 0;
+  }
+
+  .landing .e-waste-stats {
+    padding: 80px 0;
+  }
+
+  .landing .stats-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .landing .e-waste-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
   }
 
   .landing .outcomes {
@@ -1665,5 +1912,11 @@
   .landing .last-resort {
     flex-direction: column;
     gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing .problem h2 span {
+    white-space: normal;
   }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ArrowRight,
   ArrowSquareOut,
@@ -19,28 +19,28 @@ import './Landing.css'
 
 const CHAPTERS = [
   {
-    num: '01',
-    title: 'Point it at anything.',
-    sub: 'The camera is the whole interface.',
-    body: 'No model numbers, no manual lookups. Guided shots of the front, the back, and the About screen are all it takes.',
+    num: 'STEP 1',
+    title: 'Take a picture of your old device.',
+    sub: 'Your photos are all PocketValue needs to recognise your device.',
+    body: "The front and back photos help PocketValue understand your device's physical condition. The About-page photo adds model and specification details for a more accurate report.",
   },
   {
-    num: '02',
-    title: 'Get the full read.',
-    sub: 'Model, specs, condition, value. In seconds.',
-    body: 'AI fills in the whole device report — model, RAM, storage, battery health, condition — and prices it against the real market. Every field stays editable, and the estimate updates as you correct it.',
+    num: 'STEP 2',
+    title: 'View the device report.',
+    sub: 'PocketValue will analyse the model, condition, and value in a few seconds.',
+    body: 'PocketValue autofills what it can from its analysis. Complete any missing details, and it checks current Australian second-hand prices to ground the estimated resale range.',
   },
   {
-    num: '03',
-    title: 'See every route, priced.',
-    sub: 'Repair, resell, trade in, donate, recycle. Side by side.',
-    body: 'Five cards, one per route, each written for your exact device. The best one carries the badge, so the decision makes itself.',
+    num: 'STEP 3',
+    title: 'Get the best next step for your device.',
+    sub: 'Compare repair, resell, trade in, donate, and recycle side by side.',
+    body: 'Using the device report, PocketValue weighs all five options and recommends the action that makes the most sense for your device.',
   },
   {
-    num: '04',
-    title: 'Walk away with a plan.',
-    sub: 'One tap from decided to done.',
-    body: 'Pick a route and the work is already done: a ready-to-post Marketplace listing, a costed repair plan, or real drop-off spots near you.',
+    num: 'STEP 4',
+    title: 'Act on your recommendation.',
+    sub: 'Everything you need for the next step.',
+    body: 'PocketValue gives you repair costs and guides, ready-to-copy listing text, or nearby donation and recycling locations.',
   },
 ]
 
@@ -48,27 +48,27 @@ const OUTCOMES = [
   {
     icon: Wrench,
     title: 'Repair',
-    body: 'A new battery beats a new phone. Small fixes buy years.',
+    body: 'Often a cheap part is the only thing wrong. Replace it and the device is good for years.',
   },
   {
     icon: Tag,
     title: 'Resell',
-    body: 'Still works? Someone wants it, and it is worth more than you think.',
+    body: "If it still works, there's a buyer for it, usually at a higher price than you'd guess.",
   },
   {
     icon: ArrowsLeftRight,
     title: 'Trade in',
-    body: 'Put its value toward the next one. We check the offer is actually fair.',
+    body: 'Put its value toward your next device. We check that the offer is actually fair.',
   },
   {
     icon: HandHeart,
     title: 'Donate',
-    body: 'A slow laptop for you is a first laptop for someone else.',
+    body: 'The laptop that feels slow to you can be a good first computer for someone who has none.',
   },
   {
     icon: Recycle,
     title: 'Recycle',
-    body: 'Truly done? Its metals and minerals are not. Recover them properly.',
+    body: "When a device really is finished, the metals inside it aren't. Recycling gets them back.",
   },
 ]
 
@@ -76,19 +76,74 @@ const CONTRASTS = [
   {
     claim: 'Any brand, any device',
     them: 'Trade-in programs only see their own products.',
-    us: 'If it has a shape, we can read it. Ten-year-old laptops included.',
+    us: 'If you can photograph it, we can assess it, including laptops from ten years ago.',
   },
   {
-    claim: 'Every route, compared',
+    claim: 'Every action, compared',
     them: 'A trade-in quote is one number from one buyer.',
-    us: 'We weigh repair, resale, donation, and recycling against each other and show our work.',
+    us: 'We weigh the options of repairing, reselling, donating and recycling against each other and show our work.',
   },
   {
-    claim: 'Advice, not a funnel',
+    claim: 'Recommending without an agenda',
     them: 'Marketplaces want a listing. Trade-ins want you upgrading.',
-    us: 'We are happiest when the answer is: keep it. That is the whole point.',
+    us: 'PocketValue compares all five actions and recommends the one that makes the most sense for your device, rather than the one that pushes you to buy again.',
   },
 ]
+
+function CountUp({
+  value,
+  decimals = 0,
+  prefix = '',
+  suffix = '',
+}: {
+  value: number
+  decimals?: number
+  prefix?: string
+  suffix?: string
+}) {
+  const elementRef = useRef<HTMLElement>(null)
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const [displayValue, setDisplayValue] = useState(prefersReducedMotion ? value : 0)
+
+  useEffect(() => {
+    const element = elementRef.current
+    if (!element || prefersReducedMotion) return
+
+    let frame = 0
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+
+        const startedAt = performance.now()
+        const tick = (now: number) => {
+          const progress = Math.min((now - startedAt) / 1300, 1)
+          const eased = 1 - Math.pow(1 - progress, 4)
+          setDisplayValue(Number((value * eased).toFixed(decimals)))
+
+          if (progress < 1) frame = requestAnimationFrame(tick)
+        }
+
+        frame = requestAnimationFrame(tick)
+        observer.disconnect()
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -10% 0px' },
+    )
+
+    observer.observe(element)
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+    }
+  }, [decimals, prefersReducedMotion, value])
+
+  const finalLabel = `${prefix}${value.toFixed(decimals)}${suffix}`
+
+  return (
+    <strong ref={elementRef} aria-label={finalLabel}>
+      {prefix}{displayValue.toFixed(decimals)}{suffix}
+    </strong>
+  )
+}
 
 function useReveal() {
   useEffect(() => {
@@ -412,14 +467,14 @@ function Landing() {
       <section className="hero">
         <div className="hero-copy">
           <h1>
-            Your old tech isn't dead.
+            Consume less.
             <br />
-            It's <em>undecided.</em>
+            Use your tech <em>longer.</em>
           </h1>
           <p className="hero-sub">
-            Photograph any device. AI identifies it, grades its condition, and
-            finds your old tech a new home: repair, resell, trade in, donate,
-            or recycle.
+            Photograph any device. It identifies the model, grades the
+            condition, and tells you the best thing to do with it: repair,
+            resell, trade in, donate, or recycle.
           </p>
           <div className="hero-actions">
             <a href="#how" className="cta">
@@ -437,14 +492,12 @@ function Landing() {
             <span className="ticket-label">
               <Sparkle weight="fill" aria-hidden="true" /> Device report
             </span>
-            <span className="ticket-label">Example</span>
           </div>
           <p className="ticket-device">iPhone 11, 64&thinsp;GB</p>
-          <p className="ticket-year">Released 2019. Photographed today.</p>
           <dl className="ticket-rows">
             <div>
               <dt>Condition</dt>
-              <dd>
+              <dd className="condition-value">
                 <span className="grade">Good</span> Worn battery, clean screen
               </dd>
             </div>
@@ -458,49 +511,161 @@ function Landing() {
             </div>
           </dl>
           <div className="ticket-verdict">
-            <span className="stamp">Keep it</span>
+            <span className="stamp">Recommended</span>
             <p>
-              Best route: <strong>repair</strong>. A $49 battery gets you two more years. You don't need a new phone.
+              Best route: <strong>repair</strong>. A $49 battery gets you two
+              more good years. You don't need a new phone.
             </p>
           </div>
         </aside>
       </section>
 
-      <section className="problem" data-reveal>
+      <section className="e-waste-stats" data-reveal>
         <div className="container">
-          <h2>
-            Working tech gets thrown out because deciding what to do with it is a
-            chore.
-          </h2>
-          <p className="problem-body">
-            So it sits in a drawer, then quietly becomes waste. Not because it
-            was broken, but because nobody had an hour to figure out its worth.
-          </p>
-          <div className="stats">
-            <div className="stat">
-              <span className="stat-figure">62M</span>
-              <span className="stat-label">
-                tonnes of e-waste generated in a single year
+          <div className="stats-heading">
+            <h2>The scale of e-waste.</h2>
+            <ol className="stats-sources" aria-label="Statistics sources">
+              <li id="stats-source-1">
+                <a
+                  href="https://www.itu.int/en/ITU-D/Environment/Pages/Publications/The-Global-E-waste-Monitor-2024.aspx"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  ITU, Global E-waste Monitor 2024
+                </a>
+              </li>
+              <li id="stats-source-2">
+                <a
+                  href="https://unitar.org/about/news-stories/press/global-e-waste-monitor-2024-electronic-waste-rising-five-times-faster-documented-e-waste-recycling"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  UNITAR, Global E-waste Monitor press release
+                </a>
+              </li>
+              <li id="stats-source-3">
+                <a
+                  href="https://www.itu.int/itu-d/sites/digital-impact-unlocked/improving-global-e-waste-data/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  ITU, Improving Global E-waste Data
+                </a>
+              </li>
+              <li id="stats-source-4">
+                <a
+                  href="https://www.rba.gov.au/statistics/frequency/exchange-rates.html"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  RBA, daily exchange rates, 10 July 2026
+                </a>
+              </li>
+            </ol>
+          </div>
+          <div className="e-waste-grid">
+            <div className="e-waste-stat">
+              <div className="e-waste-value">
+                <CountUp value={62} suffix="M" />
+              </div>
+              <span>
+                tonnes of e-waste generated worldwide in 2022
+                <sup>
+                  <a href="#stats-source-1">1</a>, <a href="#stats-source-2">2</a>
+                </sup>
               </span>
             </div>
-            <div className="stat">
-              <span className="stat-figure">&lt;25%</span>
-              <span className="stat-label">
-                formally collected and recycled
+            <div className="e-waste-stat">
+              <div className="e-waste-value">
+                <CountUp value={22.3} decimals={1} suffix="%" />
+              </div>
+              <span>
+                documented as formally collected and recycled
+                <sup>
+                  <a href="#stats-source-1">1</a>, <a href="#stats-source-3">3</a>
+                </sup>
               </span>
             </div>
-            <div className="stat">
-              <span className="stat-figure">1 hr</span>
-              <span className="stat-label">
-                research per device. That's the real barrier we remove.
+            <div className="e-waste-stat">
+              <div className="e-waste-value">
+                <CountUp value={89} prefix="≈A$" suffix="B" />
+              </div>
+              <span>
+                in recoverable natural resources went unaccounted for
+                <sup>
+                  <a href="#stats-source-2">2</a>, <a href="#stats-source-3">3</a>,{' '}
+                  <a href="#stats-source-4">4</a>
+                </sup>
+              </span>
+            </div>
+            <div className="e-waste-stat">
+              <div className="e-waste-value">
+                <CountUp value={82} suffix="M" />
+              </div>
+              <span>
+                tonnes of e-waste projected worldwide by 2030
+                <sup>
+                  <a href="#stats-source-1">1</a>, <a href="#stats-source-2">2</a>
+                </sup>
               </span>
             </div>
           </div>
         </div>
       </section>
 
+      <section className="problem" data-reveal>
+        <div className="container">
+          <div className="problem-grid">
+            <div className="problem-copy">
+              <h2>
+                <span>Old working tech gets thrown out</span>
+                <span>because deciding what to do with it</span>
+                <span>is a chore.</span>
+              </h2>
+              <p className="problem-body">
+                So it sits in a drawer, then quietly becomes waste. Not because
+                it was broken, but because nobody had an hour to figure out its
+                worth. This is exactly what PocketValue solves.
+              </p>
+            </div>
+            <div
+              className="research-comparison"
+              aria-label="Research time reduced from one hour to five minutes with PocketValue"
+            >
+              <div className="research-time research-time-normal">
+                <span className="research-time-label">Without PocketValue</span>
+                <strong>1 hour</strong>
+                <span className="research-time-caption">research time per device</span>
+              </div>
+              <ArrowRight
+                className="research-arrow"
+                size={30}
+                weight="bold"
+                aria-hidden="true"
+              />
+              <div className="research-time research-time-pocketvalue">
+                <span className="research-time-label">With PocketValue</span>
+                <strong>5 minutes</strong>
+                <span className="research-time-caption">research time per device</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="story-intro" id="how">
-        <h2 data-reveal>Three photos do the work.</h2>
+        <h2 data-reveal>Three photos are all it takes.</h2>
+        <ol className="photo-list" data-reveal aria-label="Photos to take">
+          <li>
+            <span>1</span> Front of the device
+          </li>
+          <li>
+            <span>2</span> Back of the device
+          </li>
+          <li>
+            <span>3</span> About page of the device
+          </li>
+        </ol>
       </section>
 
       <section className="story">
@@ -523,20 +688,25 @@ function Landing() {
 
       <section className="outcomes">
         <div className="container">
-          <h2 data-reveal>Five actions you can take.</h2>
+          <h2 data-reveal>Five actions. One recommendation.</h2>
           <p className="section-sub" data-reveal>
-            We rank every route for your exact device and tell you which one
-            wins, and why.
+            We analyse every route and find the option that maximises the value
+            of your old device.
           </p>
           <div className="outcome-grid">
             {OUTCOMES.map((o, i) => (
               <article
                 key={o.title}
-                className="outcome"
+                className={`outcome${o.title === 'Resell' ? ' recommended' : ''}`}
                 data-reveal
                 style={{ '--d': `${i * 80}ms` } as React.CSSProperties}
               >
-                <o.icon size={28} weight="light" aria-hidden="true" />
+                <div className="outcome-head">
+                  <o.icon size={28} weight="light" aria-hidden="true" />
+                  {o.title === 'Resell' && (
+                    <span className="outcome-badge">Recommended</span>
+                  )}
+                </div>
                 <h3>{o.title}</h3>
                 <p>{o.body}</p>
               </article>
@@ -567,7 +737,7 @@ function Landing() {
 
       <section className="closing" data-reveal>
         <Camera size={40} weight="light" aria-hidden="true" />
-        <h2>Open the drawer. Point the camera.</h2>
+        <h2>Point your camera at that old device and find out what it's worth.</h2>
         <a href="#how" className="cta">
           Try it
           <ArrowRight weight="bold" aria-hidden="true" />
