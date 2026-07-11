@@ -281,6 +281,172 @@ app.post('/api/estimate', async (req, res) => {
   }
 })
 
+// ---- Donate locations: grounded search for nearby tech-donation spots ----
+
+const donateLocationsSchema = {
+  type: Type.OBJECT,
+  properties: {
+    intro: {
+      type: Type.STRING,
+      description:
+        'One sentence of the form "Based on your location, here\'s where you can donate your <device>."',
+    },
+    locations: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING },
+          address: { type: Type.STRING, description: 'Street address including suburb' },
+          note: {
+            type: Type.STRING,
+            description: 'Under 20 words: what tech they accept or how donating works there.',
+          },
+        },
+        required: ['name', 'address', 'note'],
+      },
+    },
+  },
+  required: ['intro', 'locations'],
+}
+
+app.post('/api/donate-locations', async (req, res) => {
+  const { model, location } = req.body ?? {}
+
+  if (
+    typeof model !== 'string' ||
+    !model.trim() ||
+    typeof location !== 'string' ||
+    !location.trim()
+  ) {
+    res.status(400).json({ error: 'model and location (strings) are required' })
+    return
+  }
+
+  try {
+    // Same two-step dance as estimation: grounded search first (can't be
+    // combined with a response schema on Gemini 2.5), then extraction.
+    const search = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-lite',
+      contents: `Search for places near ${location.trim()} where someone can donate used tech such as a ${model.trim()} — charities, op shops, community reuse programs, and e-waste donation drop-off points. List up to 6 real places, each with its name, street address, and a few words on what tech they accept. No prose introduction or caveats.`,
+      config: {
+        tools: [{ googleSearch: {} }],
+        thinkingConfig: { thinkingBudget: 0 },
+        maxOutputTokens: 600,
+      },
+    })
+    if (!search.text) throw new Error('empty donation-spot search result')
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-lite',
+      contents: `A user near ${location.trim()} wants to donate their ${model.trim()}. Using only the real places in the search findings below, write an intro sentence of the form "Based on your location, here's where you can donate your ${model.trim()}." and list the donation places.\n\nSearch findings:\n${search.text}`,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: donateLocationsSchema,
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    })
+    const parsed = JSON.parse(response.text ?? '{}') as {
+      intro?: string
+      locations?: { name: string; address: string; note: string }[]
+    }
+    // Build Maps links ourselves rather than asking Gemini for URLs it
+    // could hallucinate; this URL form opens the Google Maps app when installed.
+    const locations = (parsed.locations ?? []).slice(0, 6).map((loc) => ({
+      ...loc,
+      mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        `${loc.name} ${loc.address}`,
+      )}`,
+    }))
+    res.json({ intro: parsed.intro ?? '', locations })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Gemini request failed' })
+  }
+})
+
+const recycleLocationsSchema = {
+  type: Type.OBJECT,
+  properties: {
+    intro: {
+      type: Type.STRING,
+      description:
+        'One sentence of the form "Based on your location, here\'s where you can recycle your <device>."',
+    },
+    locations: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING },
+          address: { type: Type.STRING, description: 'Street address including suburb' },
+          note: {
+            type: Type.STRING,
+            description: 'Under 20 words: what tech they accept or how recycling e-waste works there.',
+          },
+        },
+        required: ['name', 'address', 'note'],
+      },
+    },
+  },
+  required: ['intro', 'locations'],
+}
+
+app.post('/api/recycle-locations', async (req, res) => {
+  const { model, location } = req.body ?? {}
+
+  if (
+    typeof model !== 'string' ||
+    !model.trim() ||
+    typeof location !== 'string' ||
+    !location.trim()
+  ) {
+    res.status(400).json({ error: 'model and location (strings) are required' })
+    return
+  }
+
+  try {
+    // Same two-step dance as estimation: grounded search first (can't be
+    // combined with a response schema on Gemini 2.5), then extraction.
+    const search = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-lite',
+      contents: `Search for e-waste recycling centres near ${location.trim()} that accept used tech such as a ${model.trim()}. List up to 6 real locations, each with its name, street address, and a few words on the electronic items they accept. No prose introduction or caveats.`,
+      config: {
+        tools: [{ googleSearch: {} }],
+        thinkingConfig: { thinkingBudget: 0 },
+        maxOutputTokens: 600,
+      },
+    })
+    if (!search.text) throw new Error('empty recycling-spot search result')
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-lite',
+      contents: `A user near ${location.trim()} wants to recycle their ${model.trim()}. Using only the real e-waste recycling centres in the search findings below, write an intro sentence of the form "Based on your location, here's where you can recycle your ${model.trim()}." and list the recycling centres.\n\nSearch findings:\n${search.text}`,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: donateLocationsSchema,
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    })
+    const parsed = JSON.parse(response.text ?? '{}') as {
+      intro?: string
+      locations?: { name: string; address: string; note: string }[]
+    }
+    // Build Maps links ourselves rather than asking Gemini for URLs it
+    // could hallucinate; this URL form opens the Google Maps app when installed.
+    const locations = (parsed.locations ?? []).slice(0, 6).map((loc) => ({
+      ...loc,
+      mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        `${loc.name} ${loc.address}`,
+      )}`,
+    }))
+    res.json({ intro: parsed.intro ?? '', locations })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Gemini request failed' })
+  }
+})
+
 // ---- Recommendation: fix / sell / trade in / donate / recycle ----
 
 type RecommendationAction = 'fix' | 'sell' | 'tradeIn' | 'donate' | 'recycle'

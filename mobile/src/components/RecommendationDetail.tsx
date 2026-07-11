@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { XIcon, type Icon } from 'phosphor-react-native'
 import { colors, fonts } from '../theme'
@@ -7,9 +8,11 @@ type Props = {
   blurb: string
   icon: Icon
   onClose: () => void
+  // Optional extra content rendered below the blurb (e.g. donate locations).
+  children?: ReactNode
 }
 
-export function RecommendationDetail({ title, blurb, icon: ActionIcon, onClose }: Props) {
+export function RecommendationDetail({ title, blurb, icon: ActionIcon, onClose, children }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
@@ -30,6 +33,7 @@ export function RecommendationDetail({ title, blurb, icon: ActionIcon, onClose }
         <Text style={styles.title}>{title}</Text>
         <View style={styles.divider} />
         <Text style={styles.body}>{blurb}</Text>
+        {children}
       </ScrollView>
     </SafeAreaView>
   )

@@ -255,10 +255,26 @@ function DetailScreen({
       return <RepairScreen blurb={blurb} onClose={onClose} />
     case 'sell':
       return <SellScreen blurb={blurb} listing={listing} photos={photos} onClose={onClose} />
-    case 'donate':
-      return <DonateScreen blurb={blurb} onClose={onClose} />
+    case 'donate': {
+      const model = listing.model.trim() || 'tech device'
+      const ram = listing.ramGb.trim()
+      return (
+        <DonateScreen
+          blurb={blurb}
+          model={ram ? `${model} (${ram} GB)` : model}
+          onClose={onClose}
+        />
+      )
+    }
     case 'recycle':
-      return <RecycleScreen blurb={blurb} onClose={onClose} />
+      const model = listing.model.trim() || 'tech device'
+      const ram = listing.ramGb.trim()
+      return ( <RecycleScreen
+          blurb={blurb}
+          model={ram ? `${model} (${ram} GB)` : model}
+          onClose={onClose}
+        />
+      )
   }
 }
 

@@ -66,6 +66,45 @@ export async function requestEstimate(input: {
   return parseOrThrow(res)
 }
 
+export type DonateLocation = {
+  name: string
+  address: string
+  note: string
+  mapsUrl: string
+}
+
+export type RecycleLocation = {
+  name: string
+  address: string
+  note: string
+  mapsUrl: string
+}
+
+
+export async function requestDonateLocations(input: {
+  model: string
+  location: string
+}): Promise<{ intro: string; locations: DonateLocation[] }> {
+  const res = await postWithRetry(`${API_URL}/api/donate-locations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  return parseOrThrow(res)
+}
+
+export async function requestRecyclingLocations(input: {
+  model: string
+  location: string
+}): Promise<{ intro: string; locations: RecycleLocation[] }> {
+  const res = await postWithRetry(`${API_URL}/api/recycling-locations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  return parseOrThrow(res)
+}
+
 export async function requestRecommendation(form: PreviewForm): Promise<Recommendation> {
   const res = await postWithRetry(`${API_URL}/api/recommend`, {
     method: 'POST',
