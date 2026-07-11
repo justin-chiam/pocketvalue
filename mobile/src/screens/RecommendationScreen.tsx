@@ -1,17 +1,24 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
 import {
   Animated,
   Dimensions,
   FlatList,
+  Modal,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native'
 import { AppButton } from '../components/AppButton'
 import type { RecommendationState } from '../hooks/useRecommendation'
-import { ACTIONS } from '../types'
+import { ACTIONS, Recommendation, type RecommendationAction } from '../types'
+import { RepairScreen } from './RepairScreen'
+import { SellScreen } from './SellScreen'
+import { TradeInScreen } from './TradeInScreen'
+import { DonateScreen } from './DonateScreen'
+import { RecycleScreen } from './RecycleScreen'
 
 const PAGE_WIDTH = Dimensions.get('window').width
 
@@ -27,6 +34,7 @@ type Props = {
 export function RecommendationScreen({ state, onBack, onStartOver, onRetry }: Props) {
   const { loading, data, error } = state
   const [page, setPage] = useState(0)
+  const [expanded, setExpanded] = useState<RecommendationAction | null>(null)
   const listRef = useRef<FlatList>(null)
 
   const recommendedIndex = data ? ACTIONS.findIndex((a) => a.key === data.recommended) : 0
@@ -78,16 +86,28 @@ export function RecommendationScreen({ state, onBack, onStartOver, onRetry }: Pr
             })}
             renderItem={({ item }) => (
               <View style={styles.page}>
-                <View style={[styles.card, item.key === data.recommended && styles.cardRecommended]}>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={[styles.card, item.key === data.recommended && styles.cardRecommended]}
+                  onPress={() => setExpanded(item.key)}
+                >
                   {item.key === data.recommended && (
                     <View style={styles.badge}>
                       <Text style={styles.badgeText}>✨ Recommended</Text>
                     </View>
                   )}
-                  <Text style={styles.emoji}>{item.emoji}</Text>
-                  <Text style={styles.cardTitle}>{item.label}</Text>
-                  <Text style={styles.blurb}>{data[item.key]}</Text>
-                </View>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.emoji}>{item.emoji}</Text>
+                    <Text style={styles.cardTitle}>{item.label}</Text>
+                  </View>
+                  <Text style={styles.blurb} numberOfLines={5}>
+                    {data[item.key as keyof Recommendation]}
+                  </Text>
+                  <View style={styles.expandRow}>
+                    <Text style={styles.expandRowText}>View full breakdown</Text>
+                    <Text style={styles.expandRowChevron}>›</Text>
+                  </View>
+                </TouchableOpacity>
               </View>
             )}
           />
@@ -103,8 +123,44 @@ export function RecommendationScreen({ state, onBack, onStartOver, onRetry }: Pr
         <AppButton label="Back" onPress={onBack} />
         <AppButton label="Start over" onPress={onStartOver} />
       </View>
+
+      {data && (
+        <Modal
+          visible={expanded !== null}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setExpanded(null)}
+        >
+          {expanded !== null && data && (
+            <DetailScreen
+              action={expanded}
+              blurb={data[expanded]}
+              onClose={() => setExpanded(null)}
+            />
+          )}
+        </Modal>
+      )}
     </View>
   )
+}
+
+type DetailScreenProps = { blurb: string; onClose: () => void }
+
+const DETAIL_SCREENS: Record<RecommendationAction, (props: DetailScreenProps) => ReactElement> = {
+  fix: RepairScreen,
+  sell: SellScreen,
+  tradeIn: TradeInScreen,
+  donate: DonateScreen,
+  recycle: RecycleScreen,
+}
+
+function DetailScreen({
+  action,
+  blurb,
+  onClose,
+}: DetailScreenProps & { action: RecommendationAction }) {
+  const Screen = DETAIL_SCREENS[action]
+  return <Screen blurb={blurb} onClose={onClose} />
 }
 
 // Pulsing placeholder card while Gemini decides.
@@ -181,20 +237,45 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-  emoji: {
-    fontSize: 48,
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     marginBottom: 12,
+  },
+  emoji: {
+    fontSize: 32,
   },
   cardTitle: {
     color: '#fff',
     fontSize: 24,
     fontWeight: '700',
-    marginBottom: 12,
   },
   blurb: {
+    flex: 1,
     color: '#ddd',
     fontSize: 16,
     lineHeight: 24,
+  },
+  expandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#333',
+    marginTop: 16,
+    paddingTop: 16,
+  },
+  expandRowText: {
+    color: '#0a84ff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  expandRowChevron: {
+    color: '#0a84ff',
+    fontSize: 17,
+    fontWeight: '700',
   },
   cardButtons: {
     flexDirection: 'row',

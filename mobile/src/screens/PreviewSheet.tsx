@@ -73,6 +73,14 @@ export function PreviewSheet({ state, frontPhotoUri, onStartOver, onRetry, onCon
               </View>
             </View>
 
+            <Text style={styles.fieldLabel}>Battery health (%)</Text>
+            <TextInput
+              style={styles.input}
+              value={form.batteryPct}
+              keyboardType="numeric"
+              onChangeText={(batteryPct) => setForm({ batteryPct })}
+            />
+
             <Text style={styles.fieldLabel}>Condition</Text>
             <View style={styles.pillRow}>
               {CONDITIONS.map((c) => (

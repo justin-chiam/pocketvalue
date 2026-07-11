@@ -16,17 +16,20 @@ export function usePreviewForm() {
   const model = form?.model
   const ramGb = form?.ramGb
   const storageGb = form?.storageGb
+  const batteryPct = form?.batteryPct
   const condition = form?.condition
 
-  // Debounced re-estimation when model / RAM / storage / condition are edited.
+  // Debounced re-estimation when model / RAM / storage / battery / condition are edited.
   useEffect(() => {
     if (!form) return
     const ram = Number(ramGb)
     const storage = Number(storageGb)
-    const valid = !!model?.trim() && Number.isFinite(ram) && Number.isFinite(storage)
+    const battery = Number(batteryPct)
+    const valid =
+      !!model?.trim() && Number.isFinite(ram) && Number.isFinite(storage) && Number.isFinite(battery)
     // Invalid input (e.g. "hello" for storage): keep the previous estimate.
     if (!valid) return
-    const inputsKey = JSON.stringify([model!.trim(), ram, storage, condition])
+    const inputsKey = JSON.stringify([model!.trim(), ram, storage, battery, condition])
     if (inputsKey === lastEstimatedRef.current) return
 
     const timer = setTimeout(async () => {
@@ -36,6 +39,7 @@ export function usePreviewForm() {
           model: model!.trim(),
           ramGb: ram,
           storageGb: storage,
+          batteryPct: battery,
           condition: condition!,
         })
         lastEstimatedRef.current = inputsKey
@@ -50,7 +54,7 @@ export function usePreviewForm() {
     }, 800)
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model, ramGb, storageGb, condition])
+  }, [model, ramGb, storageGb, batteryPct, condition])
 
   const submit = async (photos: Record<Slot, string | null>) => {
     if (!photos.front || !photos.back) return
@@ -62,12 +66,16 @@ export function usePreviewForm() {
         back: photos.back,
         settings: photos.settings,
       })
+      // Battery health isn't visible in photos, so it starts at a sensible
+      // default (100%) and is left entirely to the user to correct.
+      const defaultBatteryPct = 100
       // Seed the ref so the debounced effect doesn't immediately re-estimate
       // the values Gemini just produced.
       lastEstimatedRef.current = JSON.stringify([
         (data.model ?? '').trim(),
         Number(data.ramGb),
         Number(data.storageGb),
+        defaultBatteryPct,
         data.condition ?? 'good',
       ])
       setFormState({
@@ -76,6 +84,7 @@ export function usePreviewForm() {
         resaleHigh: String(data.resaleValueAud?.high ?? ''),
         ramGb: String(data.ramGb ?? ''),
         storageGb: String(data.storageGb ?? ''),
+        batteryPct: String(defaultBatteryPct),
         condition: data.condition ?? 'good',
         description: data.description ?? '',
       })

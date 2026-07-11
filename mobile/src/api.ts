@@ -55,6 +55,7 @@ export async function requestEstimate(input: {
   model: string
   ramGb: number
   storageGb: number
+  batteryPct: number
   condition: PhoneCondition
 }): Promise<{ low: number; high: number }> {
   const res = await postWithRetry(`${API_URL}/api/estimate`, {
@@ -73,6 +74,7 @@ export async function requestRecommendation(form: PreviewForm): Promise<Recommen
       model: form.model,
       ramGb: Number(form.ramGb),
       storageGb: Number(form.storageGb),
+      batteryPct: Number(form.batteryPct),
       condition: form.condition,
       description: form.description,
       resaleLow: Number(form.resaleLow),

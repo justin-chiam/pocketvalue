@@ -108,6 +108,7 @@ app.post('/api/device', deviceUpload, async (req, res) => {
 type PhoneCondition = 'good' | 'poor' | 'excellent' | 'new'
 
 interface DevicePreview {
+  deviceDetected: boolean
   model: string
   resaleValueAud: { low: number; high: number }
   ramGb: number
@@ -117,11 +118,16 @@ interface DevicePreview {
 }
 
 const previewPrompt =
-  "These are photos of the front and back of a phone or other tech device. If a third photo is included, it shows the device's software About screen (e.g. iOS Settings > General > About) — use it to pin down the exact model and storage. Identify the device, estimate its specs and its used resale value in Australian dollars (AUD), rate its visible condition, and write a short description (under 50 words) focused on the physical condition you can actually see in the photos — scratches, dents, cracked screen or glass, worn edges, missing parts. Do not include the release year."
+  "These are photos submitted by a user who claims they show the front and back of a phone or other tech device. If a third photo is included, it shows the device's software About screen (e.g. iOS Settings > General > About) — use it to pin down the exact model and storage. First, check whether a phone or tech device is actually, clearly visible in the photos. If no such device is visible — e.g. the photos show a person, a room, an unrelated object, are blank, blurry, or otherwise don't contain a device — set deviceDetected to false and leave the other fields as zero/empty placeholders; do not guess or invent a device. Only if a device is clearly visible, set deviceDetected to true and identify the device, estimate its specs and its used resale value in Australian dollars (AUD), rate its visible condition, and write a short description (under 50 words) focused on the physical condition you can actually see in the photos — scratches, dents, cracked screen or glass, worn edges, missing parts. Do not include the release year."
 
 const previewSchema = {
   type: Type.OBJECT,
   properties: {
+    deviceDetected: {
+      type: Type.BOOLEAN,
+      description:
+        'True only if a phone or tech device is clearly visible in the photos. False if not — do not hallucinate a device.',
+    },
     model: {
       type: Type.STRING,
       description: 'Make and model, e.g. "iPhone 14 Pro". No year.',
@@ -146,7 +152,7 @@ const previewSchema = {
         'Under 50 words. Visible physical condition details only (e.g. cracked screen, scratches, dents).',
     },
   },
-  required: ['model', 'resaleValueAud', 'ramGb', 'storageGb', 'condition', 'description'],
+  required: ['deviceDetected', 'model', 'resaleValueAud', 'ramGb', 'storageGb', 'condition', 'description'],
 }
 
 app.post('/api/preview', deviceUpload, async (req, res) => {
@@ -180,6 +186,10 @@ app.post('/api/preview', deviceUpload, async (req, res) => {
       },
     })
     const preview: DevicePreview = JSON.parse(response.text ?? '{}')
+    if (!preview.deviceDetected) {
+      res.status(422).json({ error: "Couldn't find a device in that photo. Try again with it clearly in frame." })
+      return
+    }
     res.json(preview)
   } catch (err) {
     console.error(err)
@@ -198,16 +208,17 @@ const estimateSchema = {
 }
 
 app.post('/api/estimate', async (req, res) => {
-  const { model, ramGb, storageGb, condition } = req.body ?? {}
+  const { model, ramGb, storageGb, batteryPct, condition } = req.body ?? {}
   const ram = Number(ramGb)
   const storage = Number(storageGb)
+  const battery = Number(batteryPct)
 
   if (typeof model !== 'string' || !model.trim() || !Number.isFinite(ram) || !Number.isFinite(storage)) {
     res.status(400).json({ error: 'model (string), ramGb and storageGb (numbers) are required' })
     return
   }
 
-  const prompt = `Estimate the current used resale value in Australian dollars (AUD), as a low–high range, for this device: ${model.trim()}, ${ram} GB RAM, ${storage} GB storage${typeof condition === 'string' && condition ? `, in ${condition} condition` : ''}.`
+  const prompt = `Estimate the current used resale value in Australian dollars (AUD), as a low–high range, for this device: ${model.trim()}, ${ram} GB RAM, ${storage} GB storage${typeof condition === 'string' && condition ? `, in ${condition} condition` : ''}${Number.isFinite(battery) ? `, battery health at ${battery}% of original capacity` : ''}. A significantly degraded battery (well below 100%) should reduce the resale value even if the rest of the device is in good condition.`
 
   try {
     const response = await ai.models.generateContent({
@@ -244,40 +255,44 @@ const recommendSchema = {
     fix: {
       type: Type.STRING,
       description:
-        '2–3 sentences on repairing this device: what likely needs fixing and whether the cost is worth it.',
+        '2–3 sentences (80 words max) on repairing this device: what likely needs fixing and whether the cost is worth it.',
     },
     sell: {
       type: Type.STRING,
-      description: '2–3 sentences on selling it privately: expected price, effort, best channels.',
+      description: '2–3 sentences (80 words max) on selling it privately: expected price, effort, best channels.',
     },
     tradeIn: {
       type: Type.STRING,
-      description: '2–3 sentences on trading it in: typical trade-in value vs selling privately.',
+      description: '2–3 sentences (80 words max) on trading it in: typical trade-in value vs selling privately.',
     },
     donate: {
       type: Type.STRING,
-      description: '2–3 sentences on donating it: who could still get good use out of it.',
+      description: '2–3 sentences (80 words max) on donating it: who could still get good use out of it.',
     },
     recycle: {
       type: Type.STRING,
-      description: '2–3 sentences on recycling it responsibly and when that is the right call.',
+      description: '2–3 sentences (80 words max) on recycling it responsibly and when that is the right call.',
     },
   },
   required: ['recommended', ...RECOMMENDATION_ACTIONS],
 }
 
 app.post('/api/recommend', async (req, res) => {
-  const { model, ramGb, storageGb, condition, description, resaleLow, resaleHigh } = req.body ?? {}
+  const { model, ramGb, storageGb, batteryPct, condition, description, resaleLow, resaleHigh } =
+    req.body ?? {}
 
   if (typeof model !== 'string' || !model.trim()) {
     res.status(400).json({ error: 'model is required' })
     return
   }
 
+  const battery = Number(batteryPct)
+
   const facts = [
     `Device: ${model.trim()}`,
     Number.isFinite(Number(ramGb)) ? `${Number(ramGb)} GB RAM` : null,
     Number.isFinite(Number(storageGb)) ? `${Number(storageGb)} GB storage` : null,
+    Number.isFinite(battery) ? `battery health: ${battery}% of original capacity` : null,
     typeof condition === 'string' && condition ? `condition: ${condition}` : null,
     typeof description === 'string' && description ? `condition notes: ${description}` : null,
     Number.isFinite(Number(resaleLow)) && Number.isFinite(Number(resaleHigh))
@@ -287,7 +302,7 @@ app.post('/api/recommend', async (req, res) => {
     .filter(Boolean)
     .join('; ')
 
-  const prompt = `You are advising the owner of a used device in Australia on what to do with it. ${facts}. For each of the five actions — fix, sell, trade in, donate, recycle — write 2–3 sentences tailored to this specific device and its condition, explaining what that path looks like and its trade-offs (use AUD for any amounts). Then pick the single action you would recommend for this device.`
+  const prompt = `You are advising the owner of a used device in Australia on what to do with it. ${facts}. For each of the five actions — fix, sell, trade in, donate, recycle — write 2–3 sentences (80 words max) tailored to this specific device and its condition, explaining what that path looks like and its trade-offs (use AUD for any amounts). If the battery health is significantly degraded (well below 100%) but the device is otherwise in good shape, weigh a battery replacement specifically in the "fix" blurb and factor it into which action you recommend overall. Then pick the single action you would recommend for this device.`
 
   try {
     const response = await ai.models.generateContent({

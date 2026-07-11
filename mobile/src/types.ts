@@ -33,6 +33,7 @@ export type PreviewForm = {
   resaleHigh: string
   ramGb: string
   storageGb: string
+  batteryPct: string
   condition: PhoneCondition
   description: string
 }
