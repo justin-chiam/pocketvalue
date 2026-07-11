@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import {
   ArrowRight,
   ArrowsLeftRight,
@@ -261,9 +260,9 @@ function Landing() {
       <header className="nav">
         <div className="nav-inner">
           <span className="wordmark">PocketValue</span>
-          <Link to="/app" className="nav-cta">
+          <a href="#how" className="nav-cta">
             Try it
-          </Link>
+          </a>
         </div>
       </header>
 
@@ -280,10 +279,10 @@ function Landing() {
             or recycle.
           </p>
           <div className="hero-actions">
-            <Link to="/app" className="cta">
+            <a href="#how" className="cta">
               Try it
               <ArrowRight weight="bold" aria-hidden="true" />
-            </Link>
+            </a>
             <a href="#how" className="cta-quiet">
               How it works
             </a>
@@ -434,10 +433,10 @@ function Landing() {
       <section className="closing" data-reveal>
         <Camera size={40} weight="light" aria-hidden="true" />
         <h2>Open the drawer. Point the camera.</h2>
-        <Link to="/app" className="cta">
+        <a href="#how" className="cta">
           Try it
           <ArrowRight weight="bold" aria-hidden="true" />
-        </Link>
+        </a>
       </section>
 
       <footer className="footer">
