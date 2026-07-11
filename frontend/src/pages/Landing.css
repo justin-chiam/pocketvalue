@@ -759,6 +759,12 @@
   overflow: hidden;
 }
 
+/* Match the screen's base layer to the report camera backdrop. This keeps the
+   rounded-edge antialiasing from blending against white at the top corners. */
+.landing .iphone[data-screen='1'] .device-screen {
+  background: #101613;
+}
+
 .landing .device-iphone-14-pro .device-stripe::after,
 .landing .device-iphone-14-pro .device-stripe::before {
   border: solid rgba(1, 1, 1, 0.25);
