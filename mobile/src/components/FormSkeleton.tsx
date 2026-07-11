@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
-import { Animated, StyleSheet, View } from 'react-native'
+import { Animated, Easing, StyleSheet, View } from 'react-native'
 import { CONDITIONS } from '../types'
+import { colors, radius } from '../theme'
 
 // Skeleton mirroring the preview form's layout, pulsing while Gemini analyzes.
 export function FormSkeleton() {
@@ -9,8 +10,18 @@ export function FormSkeleton() {
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 0.4, duration: 650, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 650, useNativeDriver: true }),
+        Animated.timing(pulse, {
+          toValue: 0.4,
+          duration: 650,
+          easing: Easing.bezier(0.22, 1, 0.36, 1),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 650,
+          easing: Easing.bezier(0.22, 1, 0.36, 1),
+          useNativeDriver: true,
+        }),
       ]),
     )
     loop.start()
@@ -23,7 +34,7 @@ export function FormSkeleton() {
 
   return (
     <View>
-      {block({ width: 88, height: 88, borderRadius: 12, alignSelf: 'center', marginBottom: 8 })}
+      {block({ width: 88, height: 88, borderRadius: radius.card, alignSelf: 'center', marginBottom: 8 })}
       {block({ width: 48, height: 12, marginTop: 16 })}
       {block({ height: 42, marginTop: 6 })}
       <View style={styles.row}>
@@ -38,7 +49,7 @@ export function FormSkeleton() {
       </View>
       {block({ width: 72, height: 12, marginTop: 16 })}
       <View style={styles.pillRow}>
-        {CONDITIONS.map((c) => block({ width: 72, height: 34, borderRadius: 16 }, c))}
+        {CONDITIONS.map((c) => block({ width: 72, height: 34, borderRadius: radius.pill }, c))}
       </View>
       {block({ width: 88, height: 12, marginTop: 16 })}
       {block({ height: 80, marginTop: 6 })}
@@ -50,8 +61,8 @@ export function FormSkeleton() {
 
 const styles = StyleSheet.create({
   block: {
-    backgroundColor: '#3a3a3c',
-    borderRadius: 8,
+    backgroundColor: colors.line,
+    borderRadius: radius.card,
   },
   row: {
     flexDirection: 'row',

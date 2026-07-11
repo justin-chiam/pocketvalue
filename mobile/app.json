@@ -27,6 +27,7 @@
           "cameraPermission": "Allow this app to use the camera to photograph your device."
         }
       ],
+      "expo-font",
       [
         "expo-media-library",
         {

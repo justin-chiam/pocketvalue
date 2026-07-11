@@ -11,7 +11,9 @@ import {
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import * as MediaLibrary from 'expo-media-library'
+import { ArrowSquareOutIcon, ImagesIcon } from 'phosphor-react-native'
 import type { PhoneCondition, PreviewForm, Slot } from '../types'
+import { colors, fonts, radius } from '../theme'
 
 const MARKETPLACE_CREATE_URL = 'https://www.facebook.com/marketplace/create/item/'
 
@@ -133,7 +135,9 @@ export function SellScreen({ blurb, listing, photos, onClose }: Props) {
 
         <View style={styles.photoPrompt}>
           <View style={styles.photoPromptHeader}>
-            <Text style={styles.photoIcon}>＋</Text>
+            <View style={styles.photoIcon}>
+              <ImagesIcon size={22} weight="light" color={colors.pine} />
+            </View>
             <View style={styles.photoPromptHeading}>
               <Text style={styles.photoPromptTitle}>Add a few buyer-friendly photos</Text>
               <Text style={styles.photoCount}>{photoUris.length} scan photos taken</Text>
@@ -151,7 +155,7 @@ export function SellScreen({ blurb, listing, photos, onClose }: Props) {
             onPress={() => void savePhotos()}
           >
             {photoSaveState === 'saving' ? (
-              <ActivityIndicator size="small" color="#1c5b45" />
+              <ActivityIndicator size="small" color={colors.pine} />
             ) : (
               <Text style={styles.savePhotosText}>
                 {photoSaveState === 'saved' ? '✓ Scan photos saved' : 'Save scan photos'}
@@ -174,7 +178,7 @@ export function SellScreen({ blurb, listing, photos, onClose }: Props) {
           onPress={() => void openMarketplace()}
         >
           <Text style={styles.marketplaceButtonText}>Go to Facebook Marketplace</Text>
-          <Text style={styles.arrow}>↗</Text>
+          <ArrowSquareOutIcon size={19} weight="bold" color={colors.ctaText} />
         </TouchableOpacity>
         <Text style={styles.footerNote}>Facebook opens separately. You’ll review and publish there.</Text>
       </View>
@@ -251,7 +255,7 @@ function cleanPrice(value: string) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0b0d0c',
+    backgroundColor: colors.paper,
   },
   topBar: {
     minHeight: 64,
@@ -262,23 +266,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#2c302e',
+    borderBottomColor: colors.line,
   },
   closeText: {
-    color: '#c8ddd2',
+    color: colors.pine,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 16,
-    fontWeight: '600',
   },
   copyAllButton: {
-    borderRadius: 999,
-    backgroundColor: '#222825',
+    borderRadius: radius.pill,
+    backgroundColor: colors.pineSoft,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
   copyAllText: {
-    color: '#f2f7f4',
+    color: colors.pine,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 14,
-    fontWeight: '700',
   },
   scroll: {
     paddingHorizontal: 20,
@@ -286,14 +290,14 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
   },
   title: {
-    color: '#f6f8f7',
+    color: colors.ink,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 30,
     lineHeight: 35,
-    fontWeight: '700',
     letterSpacing: -0.6,
   },
   intro: {
-    color: '#aeb6b2',
+    color: colors.body,
     fontSize: 16,
     lineHeight: 23,
     marginTop: 10,
@@ -302,17 +306,17 @@ const styles = StyleSheet.create({
     marginTop: 24,
     paddingBottom: 22,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#303532',
+    borderBottomColor: colors.line,
   },
   recommendationLabel: {
-    color: '#80a894',
+    color: colors.pine,
+    fontFamily: fonts.monoMedium,
     fontSize: 11,
-    fontWeight: '700',
     letterSpacing: 1.1,
     marginBottom: 7,
   },
   recommendationText: {
-    color: '#d5dbd8',
+    color: colors.body,
     fontSize: 15,
     lineHeight: 22,
   },
@@ -321,10 +325,10 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   field: {
-    backgroundColor: '#171a18',
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radius.card,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#343936',
+    borderColor: colors.line,
     padding: 16,
   },
   fieldHeader: {
@@ -334,21 +338,21 @@ const styles = StyleSheet.create({
     marginBottom: 9,
   },
   fieldLabel: {
-    color: '#8e9993',
+    color: colors.muted,
+    fontFamily: fonts.monoMedium,
     fontSize: 12,
-    fontWeight: '700',
     letterSpacing: 0.3,
   },
   copyText: {
-    color: '#9fc8b4',
+    color: colors.pine,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 14,
-    fontWeight: '700',
   },
   copyTextSuccess: {
-    color: '#f2f7f4',
+    color: colors.pine,
   },
   fieldValue: {
-    color: '#f2f4f3',
+    color: colors.ink,
     fontSize: 16,
     lineHeight: 23,
   },
@@ -357,8 +361,8 @@ const styles = StyleSheet.create({
   },
   photoPrompt: {
     marginTop: 24,
-    borderRadius: 16,
-    backgroundColor: '#163629',
+    borderRadius: radius.card,
+    backgroundColor: colors.pineSoft,
     padding: 18,
   },
   photoPromptHeader: {
@@ -369,53 +373,52 @@ const styles = StyleSheet.create({
   photoIcon: {
     width: 38,
     height: 38,
-    borderRadius: 19,
-    backgroundColor: '#f2f7f4',
-    color: '#1c5b45',
-    textAlign: 'center',
-    lineHeight: 37,
-    fontSize: 24,
-    fontWeight: '400',
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   photoPromptHeading: {
     flex: 1,
   },
   photoPromptTitle: {
-    color: '#f2f7f4',
+    color: colors.ink,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 17,
-    fontWeight: '700',
     lineHeight: 21,
   },
   photoCount: {
-    color: '#b8d2c5',
+    color: colors.muted,
     fontSize: 13,
     marginTop: 2,
   },
   photoPromptText: {
-    color: '#d3e2da',
+    color: colors.body,
     fontSize: 15,
     lineHeight: 22,
     marginTop: 15,
   },
   savePhotosButton: {
     minHeight: 46,
-    borderRadius: 999,
-    backgroundColor: '#f2f7f4',
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
     paddingHorizontal: 18,
   },
   savePhotosDone: {
-    backgroundColor: '#c8ddd2',
+    backgroundColor: colors.pineBody,
   },
   savePhotosText: {
-    color: '#1c5b45',
+    color: colors.pine,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 15,
-    fontWeight: '700',
   },
   privacyNote: {
-    color: '#b8d2c5',
+    color: colors.muted,
     fontSize: 13,
     lineHeight: 19,
     marginTop: 12,
@@ -424,14 +427,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 18,
-    backgroundColor: '#0b0d0c',
+    backgroundColor: colors.paper,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#2c302e',
+    borderTopColor: colors.line,
   },
   marketplaceButton: {
     minHeight: 54,
-    borderRadius: 999,
-    backgroundColor: '#1c5b45',
+    borderRadius: radius.pill,
+    backgroundColor: colors.pine,
     paddingHorizontal: 22,
     flexDirection: 'row',
     alignItems: 'center',
@@ -439,17 +442,12 @@ const styles = StyleSheet.create({
     gap: 9,
   },
   marketplaceButtonText: {
-    color: '#f2f7f4',
+    color: colors.ctaText,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 16,
-    fontWeight: '700',
-  },
-  arrow: {
-    color: '#f2f7f4',
-    fontSize: 18,
-    fontWeight: '700',
   },
   footerNote: {
-    color: '#7f8984',
+    color: colors.muted,
     fontSize: 12,
     textAlign: 'center',
     marginTop: 8,

@@ -178,34 +178,25 @@ Patterns in use:
 | **Landing page** (`/`) | `frontend/src/pages/Landing.tsx`, `Landing.css` | ✅ Fully on-brand — source of truth for everything above | — |
 | **Web app tool** (`/app`) | `frontend/src/pages/AppPage.tsx`, `AppPage.css` | ❌ Unstyled placeholder (Gemini chat demo). Uses `index.css` root tokens: `--accent: #aa3bff` (purple), system-ui font, generic rounded cards | Needs a full rebuild on the tokens above once the real photo → assessment → recommendation flow is designed for web. Don't keep the purple `--accent` — it predates the brand and reads as a totally different product |
 | **Root shell** | `frontend/src/index.css` | Legacy Vite template tokens (`--accent`, `--code-bg`, `--social-bg`, purple in both light and dark mode) still power `#root` and `AppPage` | Once `/app` is rebuilt, these can be deleted; nothing on-brand should reference them |
-| **Mobile app** | `mobile/src/screens/*.tsx`, `mobile/src/components/*.tsx` | ❌ Dark, iOS-native theme: black/near-black backgrounds (`#000`, `#1c1c1e`, `#2c2c2e`), iOS system green accent (`#34c759`), system default fonts, no shared theme file — every color is a hardcoded hex per-component | See mobile mapping below |
+| **Mobile app** | `mobile/src/screens/*.tsx`, `mobile/src/components/*.tsx`, `mobile/src/theme.ts` | ✅ Synced to the light paper/ink/pine system with Bricolage Grotesque, IBM Plex Mono, Phosphor icons, outlined cards, and pill CTAs | The live camera and captured-photo viewers intentionally remain dark viewports; all interface chrome uses brand tokens |
 
 ### Bringing mobile in line
 
 Mobile currently reads as a generic iOS dark-mode utility, not PocketValue.
 To sync it with the brand:
 
-1. **Accent:** replace iOS system green `#34c759` with pine `#1c5b45`
-   everywhere it appears (`ScanScreen.tsx`, `RecommendationScreen.tsx`).
-2. **Theme:** the web brand is light (`#ffffff` paper, near-black ink). Mobile
-   is currently dark (`#000`/`#1c1c1e` backgrounds, white text). This is the
-   biggest open decision — either (a) flip mobile to the light theme to match
-   web exactly, or (b) deliberately keep mobile dark as a "camera app" mode
-   (dark backgrounds are conventional for camera/scan UIs) and treat it as an
-   intentional, documented exception. Pick one and record the decision here;
-   right now it's just drift, not a choice.
-3. **Fonts:** load Bricolage Grotesque + IBM Plex Mono via
-   `expo-font`/`@expo-google-fonts` (both are on Google Fonts) so headings and
-   spec data match web instead of falling back to the OS default font.
-4. **No shared theme file exists yet.** Every screen hardcodes its own hex
-   values. Before syncing colors, add a single `mobile/src/theme.ts`
-   exporting the token table above (as a flat const object, not a
-   light/dark pair, per the "light only" rule) and import it everywhere
-   instead of inline hex strings — otherwise this same drift will happen
-   again the next time someone tweaks a screen.
-5. **Radius / motion:** mobile buttons currently use `8px` radius
-   (`AppButton.tsx`); web uses `999px` pills for CTAs. Align on pills for
-   primary actions if the brand should feel identical across platforms.
+1. **Accent:** completed. Pine `#1c5b45` is the sole mobile accent.
+2. **Theme:** completed. Mobile uses the light brand theme for app surfaces.
+   The live camera and full-screen captured-photo viewers are the intentional
+   dark exception because the image itself is the working surface; their
+   controls still use pine, paper, and branded typography.
+3. **Fonts:** completed. Bricolage Grotesque and IBM Plex Mono load locally
+   through `expo-font` and `@expo-google-fonts`.
+4. **Shared tokens:** completed. `mobile/src/theme.ts` is the single flat
+   source for mobile color, font, and radius tokens.
+5. **Radius / motion:** completed. Primary actions use pill geometry and
+   branded transitions use the shared ease-out curve where React Native's
+   animation API applies.
 
 Suggested starting point for `mobile/src/theme.ts`:
 

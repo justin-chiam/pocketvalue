@@ -1,22 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
+  Animated,
   Image,
+  PanResponder,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
+  type GestureResponderEvent,
 } from 'react-native'
 import { AppButton } from '../components/AppButton'
 import { BottomSheet } from '../components/BottomSheet'
 import { FormSkeleton } from '../components/FormSkeleton'
 import type { PreviewFormState } from '../hooks/usePreviewForm'
 import { CONDITIONS, SLOT_LABELS, type PreviewForm, type Slot } from '../types'
+import { colors, fonts, radius } from '../theme'
 
-const ERROR_COLOR = '#ff453a'
-const PLACEHOLDER_COLOR = '#a1a1a6'
+const ERROR_COLOR = colors.danger
+const PLACEHOLDER_COLOR = colors.muted
 
 type RequiredField = 'model' | 'ram' | 'storage' | 'battery' | 'description'
 
@@ -35,8 +38,66 @@ export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }
   const photoEntries = (Object.entries(photos) as [Slot, string | null][]).filter(
     (entry): entry is [Slot, string] => entry[1] !== null,
   )
+  const selectedConditionIndex = form ? CONDITIONS.indexOf(form.condition) : 0
   const [attemptedContinue, setAttemptedContinue] = useState(false)
   const [focusedField, setFocusedField] = useState<RequiredField | null>(null)
+  const [isDraggingCondition, setIsDraggingCondition] = useState(false)
+  const conditionThumb = useRef(new Animated.Value(selectedConditionIndex)).current
+  const trackWidthRef = useRef(0)
+
+  // Keep the thumb in sync when the condition changes from outside a drag
+  // (initial load, or re-fetched values) — but not mid-gesture.
+  useEffect(() => {
+    if (isDraggingCondition) return
+    Animated.spring(conditionThumb, {
+      toValue: selectedConditionIndex,
+      useNativeDriver: false,
+      bounciness: 6,
+    }).start()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedConditionIndex, isDraggingCondition])
+
+  const indexFromTouchX = (x: number) => {
+    const width = trackWidthRef.current
+    if (width <= 0) return selectedConditionIndex
+    const inset = width * 0.125
+    const usable = width - inset * 2
+    const clamped = Math.min(Math.max(x, inset), width - inset)
+    return ((clamped - inset) / usable) * (CONDITIONS.length - 1)
+  }
+
+  const updateConditionFromTouch = (evt: GestureResponderEvent) => {
+    const rawIndex = indexFromTouchX(evt.nativeEvent.locationX)
+    conditionThumb.setValue(rawIndex)
+    const nearestCondition = CONDITIONS[Math.round(rawIndex)]
+    if (form && nearestCondition !== form.condition) {
+      setForm({ condition: nearestCondition })
+    }
+  }
+
+  // Recreated each render (cheap) so its handlers always close over the
+  // latest `form` — caching this in a ref would freeze them to stale state.
+  const conditionPanResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (evt) => {
+      setIsDraggingCondition(true)
+      updateConditionFromTouch(evt)
+    },
+    onPanResponderMove: (evt) => {
+      updateConditionFromTouch(evt)
+    },
+    onPanResponderRelease: () => setIsDraggingCondition(false),
+    onPanResponderTerminate: () => setIsDraggingCondition(false),
+  })
+  const conditionThumbLeft = conditionThumb.interpolate({
+    inputRange: [0, 1, 2, 3],
+    outputRange: ['12.5%', '37.5%', '62.5%', '87.5%'],
+  })
+  const conditionTrackActiveWidth = conditionThumb.interpolate({
+    inputRange: [0, 1, 2, 3],
+    outputRange: ['0%', '25%', '50%', '75%'],
+  })
   const showModelError =
     attemptedContinue &&
     focusedField !== 'model' &&
@@ -84,11 +145,12 @@ export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }
           <Text style={styles.errorText}>{error}</Text>
           <View style={styles.buttons}>
             <AppButton label="Try again" onPress={onRetry} />
-            <AppButton label="Start over" onPress={onStartOver} />
+            <AppButton label="Start over" onPress={onStartOver} variant="secondary" />
           </View>
         </View>
       ) : form !== null ? (
         <>
+          <Text style={styles.sheetTitle}>Device report</Text>
           <ScrollView contentContainerStyle={styles.scroll}>
             {photoEntries.length > 0 && (
               <>
@@ -178,18 +240,56 @@ export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }
             />
 
             <Text style={styles.fieldLabel}>Condition</Text>
-            <View style={styles.pillRow}>
-              {CONDITIONS.map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  style={[styles.pill, form.condition === c && styles.pillSelected]}
-                  onPress={() => setForm({ condition: c })}
-                >
-                  <Text style={[styles.pillText, form.condition === c && styles.pillTextSelected]}>
-                    {c}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <View
+              style={styles.conditionSlider}
+              onLayout={(e) => {
+                trackWidthRef.current = e.nativeEvent.layout.width
+              }}
+              accessible
+              accessibilityRole="adjustable"
+              accessibilityLabel="Condition"
+              accessibilityValue={{
+                text: form.condition.charAt(0).toUpperCase() + form.condition.slice(1),
+              }}
+              onAccessibilityAction={(e) => {
+                const step = e.nativeEvent.actionName === 'increment' ? 1 : -1
+                const nextIndex = Math.min(
+                  Math.max(selectedConditionIndex + step, 0),
+                  CONDITIONS.length - 1,
+                )
+                setForm({ condition: CONDITIONS[nextIndex] })
+              }}
+              {...conditionPanResponder.panHandlers}
+            >
+              <View style={styles.conditionTrack} />
+              <Animated.View
+                style={[styles.conditionTrackActive, { width: conditionTrackActiveWidth }]}
+              />
+              <View style={styles.conditionStops} pointerEvents="none">
+                {CONDITIONS.map((condition) => {
+                  const selected = form.condition === condition
+                  const label = condition.charAt(0).toUpperCase() + condition.slice(1)
+
+                  return (
+                    <View key={condition} style={styles.conditionStop}>
+                      <View style={[styles.conditionLabelPill, selected && styles.conditionLabelPillSelected]}>
+                        <Text
+                          style={[
+                            styles.conditionLabel,
+                            selected && styles.conditionLabelSelected,
+                          ]}
+                        >
+                          {label}
+                        </Text>
+                      </View>
+                    </View>
+                  )
+                })}
+              </View>
+              <Animated.View
+                pointerEvents="none"
+                style={[styles.conditionThumb, { left: conditionThumbLeft }]}
+              />
             </View>
 
             <Text style={styles.fieldLabel}>Description</Text>
@@ -216,11 +316,11 @@ export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }
               <Text style={styles.resaleValue}>
                 ${form.resaleLow} – ${form.resaleHigh}
               </Text>
-              {estimating && <ActivityIndicator size="small" color="#999" />}
+              {estimating && <ActivityIndicator size="small" color={colors.pine} />}
             </View>
           </ScrollView>
           <View style={styles.buttons}>
-            <AppButton label="Start over" onPress={onStartOver} />
+            <AppButton label="Start over" onPress={onStartOver} variant="secondary" />
             <AppButton label="Continue" onPress={continueWithValidation} />
           </View>
         </>
@@ -260,14 +360,22 @@ function isBatteryHealthValid(value: string) {
 
 const styles = StyleSheet.create({
   scroll: {
-    paddingBottom: 8,
+    paddingBottom: 12,
+  },
+  sheetTitle: {
+    color: colors.ink,
+    fontFamily: fonts.displaySemiBold,
+    fontSize: 26,
+    letterSpacing: -0.4,
+    marginTop: 8,
+    marginBottom: 8,
   },
   thumb: {
     width: '100%',
     aspectRatio: 1,
-    borderRadius: 12,
+    borderRadius: radius.card,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.line,
   },
   photoGallery: {
     flexDirection: 'row',
@@ -279,25 +387,28 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   photoLabel: {
-    color: '#999',
+    color: colors.muted,
+    fontFamily: fonts.mono,
     fontSize: 12,
     textAlign: 'center',
   },
   fieldLabel: {
-    color: '#999',
-    fontSize: 13,
-    marginTop: 16,
-    marginBottom: 6,
+    color: colors.muted,
+    fontSize: 11,
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+    marginTop: 18,
+    marginBottom: 8,
   },
   input: {
-    backgroundColor: '#2c2c2e',
-    color: '#fff',
+    backgroundColor: colors.surface,
+    color: colors.ink,
     fontSize: 16,
-    borderRadius: 10,
+    borderRadius: radius.card,
     borderWidth: 1,
-    borderColor: 'transparent',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderColor: colors.line,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   inputError: {
     borderColor: ERROR_COLOR,
@@ -313,26 +424,59 @@ const styles = StyleSheet.create({
   inputHalf: {
     flex: 1,
   },
-  pillRow: {
+  conditionSlider: {
+    position: 'relative',
+    minHeight: 58,
+  },
+  conditionTrack: {
+    position: 'absolute',
+    top: 10,
+    left: '12.5%',
+    right: '12.5%',
+    height: 2,
+    backgroundColor: colors.line,
+  },
+  conditionTrackActive: {
+    position: 'absolute',
+    top: 10,
+    left: '12.5%',
+    height: 2,
+    backgroundColor: colors.pine,
+  },
+  conditionThumb: {
+    position: 'absolute',
+    top: -2,
+    width: 26,
+    height: 26,
+    marginLeft: -13,
+    borderRadius: radius.pill,
+    backgroundColor: colors.pine,
+  },
+  conditionStops: {
     flexDirection: 'row',
-    gap: 8,
   },
-  pill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 16,
-    backgroundColor: '#2c2c2e',
+  conditionStop: {
+    flex: 1,
+    minHeight: 58,
+    alignItems: 'center',
   },
-  pillSelected: {
-    backgroundColor: '#fff',
+  conditionLabelPill: {
+    marginTop: 30,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 50,
   },
-  pillText: {
-    color: '#fff',
-    fontSize: 14,
+  conditionLabelPillSelected: {
+    backgroundColor: colors.pineSoft,
   },
-  pillTextSelected: {
-    color: '#000',
-    fontWeight: '600',
+  conditionLabel: {
+    color: colors.body,
+    fontFamily: fonts.displayMedium,
+    fontSize: 12,
+  },
+  conditionLabelSelected: {
+    color: colors.pine,
+    fontFamily: fonts.displaySemiBold,
   },
   descriptionInput: {
     minHeight: 80,
@@ -344,18 +488,18 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   resaleValue: {
-    color: '#fff',
+    color: colors.ink,
+    fontFamily: fonts.monoMedium,
     fontSize: 24,
-    fontWeight: '700',
   },
   errorTitle: {
-    color: '#fff',
+    color: colors.ink,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 22,
-    fontWeight: '700',
     marginBottom: 16,
   },
   errorText: {
-    color: '#fff',
+    color: colors.body,
     fontSize: 16,
     lineHeight: 24,
   },
@@ -364,5 +508,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 16,
     paddingTop: 20,
+    paddingBottom: 4,
   },
 })

@@ -1,9 +1,12 @@
-import { useEffect, useRef, useState, type ReactElement } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
+  Alert,
   Animated,
   Dimensions,
+  Easing,
   FlatList,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -11,18 +14,22 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native'
+import {
+  ArrowsLeftRightIcon,
+  CaretLeftIcon,
+  HandHeartIcon,
+  RecycleIcon,
+  TagIcon,
+  WrenchIcon,
+  type Icon,
+} from 'phosphor-react-native'
 import { AppButton } from '../components/AppButton'
 import type { RecommendationState } from '../hooks/useRecommendation'
-import {
-  ACTIONS,
-  Recommendation,
-  type PreviewForm,
-  type RecommendationAction,
-  type Slot,
-} from '../types'
+import { getTradeInEstimate } from '../tradeIn'
+import { ACTIONS, type PreviewForm, type RecommendationAction, type Slot } from '../types'
+import { colors, fonts, radius } from '../theme'
 import { RepairScreen } from './RepairScreen'
 import { SellScreen } from './SellScreen'
-import { TradeInScreen } from './TradeInScreen'
 import { DonateScreen } from './DonateScreen'
 import { RecycleScreen } from './RecycleScreen'
 
@@ -37,6 +44,16 @@ type Props = {
   onRetry: () => void
 }
 
+type ExpandableAction = Exclude<RecommendationAction, 'tradeIn'>
+
+const ACTION_ICONS: Record<RecommendationAction, Icon> = {
+  fix: WrenchIcon,
+  sell: TagIcon,
+  tradeIn: ArrowsLeftRightIcon,
+  donate: HandHeartIcon,
+  recycle: RecycleIcon,
+}
+
 // The recommendation view: all five options (fix / sell / trade in / donate /
 // recycle) as swipeable cards, with the AI's pick badged and shown first.
 export function RecommendationScreen({
@@ -49,28 +66,58 @@ export function RecommendationScreen({
 }: Props) {
   const { loading, data, error } = state
   const [page, setPage] = useState(0)
-  const [expanded, setExpanded] = useState<RecommendationAction | null>(null)
-  const listRef = useRef<FlatList>(null)
+  const [expanded, setExpanded] = useState<ExpandableAction | null>(null)
+  const tradeInEstimate = getTradeInEstimate(listing)
 
   const recommendedIndex = data ? ACTIONS.findIndex((a) => a.key === data.recommended) : 0
 
-  // Land on the recommended card once data arrives.
+  // Keep the page indicator aligned with the recommended card when data arrives.
   useEffect(() => {
     if (!data) return
     setPage(recommendedIndex)
-    // The list may not have laid out yet on the same frame.
-    requestAnimationFrame(() =>
-      listRef.current?.scrollToIndex({ index: recommendedIndex, animated: false }),
-    )
   }, [data, recommendedIndex])
 
   const onScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     setPage(Math.round(e.nativeEvent.contentOffset.x / PAGE_WIDTH))
   }
 
+  const confirmStartOver = () => {
+    Alert.alert(
+      'Are you sure you want to start over?',
+      'Your captured photos and current recommendation will be cleared.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Start over', style: 'destructive', onPress: onStartOver },
+      ],
+    )
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>What should you do with it?</Text>
+      <View style={styles.header}>
+        <View style={styles.navRow}>
+          <TouchableOpacity
+            style={styles.back}
+            onPress={onBack}
+            activeOpacity={0.65}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <CaretLeftIcon size={22} weight="bold" color={colors.pine} />
+            <Text style={styles.backText}>Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.startOver}
+            onPress={confirmStartOver}
+            activeOpacity={0.75}
+            accessibilityRole="button"
+            accessibilityLabel="Start over"
+          >
+            <Text style={styles.startOverText}>Start over</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.title}>What should you do with it?</Text>
+      </View>
 
       {loading ? (
         <CardSkeleton />
@@ -87,8 +134,8 @@ export function RecommendationScreen({
       ) : data !== null ? (
         <>
           <FlatList
-            ref={listRef}
             data={ACTIONS}
+            initialScrollIndex={recommendedIndex}
             keyExtractor={(a) => a.key}
             horizontal
             pagingEnabled
@@ -99,45 +146,74 @@ export function RecommendationScreen({
               offset: PAGE_WIDTH * index,
               index,
             })}
-            renderItem={({ item }) => (
-              <View style={styles.page}>
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  style={[styles.card, item.key === data.recommended && styles.cardRecommended]}
-                  onPress={() => setExpanded(item.key)}
-                >
-                  {item.key === data.recommended && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>✨ Recommended</Text>
-                    </View>
-                  )}
-                  <View style={styles.cardHeader}>
-                    <Text style={styles.emoji}>{item.emoji}</Text>
-                    <Text style={styles.cardTitle}>{item.label}</Text>
-                  </View>
-                  <Text style={styles.blurb} numberOfLines={5}>
-                    {data[item.key as keyof Recommendation]}
-                  </Text>
-                  <View style={styles.expandRow}>
-                    <Text style={styles.expandRowText}>View full breakdown</Text>
-                    <Text style={styles.expandRowChevron}>›</Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            )}
+            renderItem={({ item }) => {
+              const ActionIcon = ACTION_ICONS[item.key]
+
+              return (
+                <View style={styles.page}>
+                  <TouchableOpacity
+                    activeOpacity={item.key === 'tradeIn' ? 1 : 0.85}
+                    style={[styles.card, item.key === data.recommended && styles.cardRecommended]}
+                    disabled={item.key === 'tradeIn'}
+                    onPress={() => {
+                      if (item.key !== 'tradeIn') setExpanded(item.key)
+                    }}
+                  >
+                    <ScrollView
+                      contentContainerStyle={styles.cardContent}
+                      showsVerticalScrollIndicator={false}
+                      nestedScrollEnabled
+                    >
+                      {item.key === data.recommended && (
+                        <View style={styles.badge}>
+                          <Text style={styles.badgeText}>Recommended</Text>
+                        </View>
+                      )}
+                      <ActionIcon
+                        size={28}
+                        weight="light"
+                        color={colors.pine}
+                        style={styles.actionIcon}
+                      />
+                      <Text style={styles.cardTitle}>{item.label}</Text>
+                      {item.key === 'tradeIn' ? (
+                        <View style={styles.tradeInContent}>
+                          <Text style={styles.tradeInModel}>{listing.model || 'Detected device'}</Text>
+                          <View style={styles.tradeInEstimate}>
+                            <Text style={styles.tradeInLabel}>Estimated trade-in value</Text>
+                            <Text style={styles.tradeInValue}>${tradeInEstimate.valueAud} AUD</Text>
+                            <Text style={styles.tradeInNote}>
+                              {tradeInEstimate.matchedModel
+                                ? `Based on the ${tradeInEstimate.matchedModel} Apple trade-in value.`
+                                : 'Temporary estimate while this device is not yet supported.'}
+                            </Text>
+                          </View>
+                          <Text style={styles.tradeInBlurb}>{data.tradeIn}</Text>
+                        </View>
+                      ) : (
+                        <>
+                          <Text style={styles.blurb}>{data[item.key]}</Text>
+                          <View style={styles.expandRow}>
+                            <Text style={styles.expandRowText}>View full breakdown</Text>
+                            <Text style={styles.expandRowChevron}>›</Text>
+                          </View>
+                        </>
+                      )}
+                    </ScrollView>
+                  </TouchableOpacity>
+                </View>
+              )
+            }}
           />
           <View style={styles.dots}>
-            {ACTIONS.map((a, i) => (
-              <View key={a.key} style={[styles.dot, i === page && styles.dotActive]} />
-            ))}
+            <View style={[styles.dot, page === 0 && styles.dotActive]} />
+            <View style={[styles.dot, page === 1 && styles.dotActive]} />
+            <View style={[styles.dot, page === 2 && styles.dotActive]} />
+            <View style={[styles.dot, page === 3 && styles.dotActive]} />
+            <View style={[styles.dot, page === 4 && styles.dotActive]} />
           </View>
         </>
       ) : null}
-
-      <View style={styles.buttons}>
-        <AppButton label="Back" onPress={onBack} />
-        <AppButton label="Start over" onPress={onStartOver} />
-      </View>
 
       {data && (
         <Modal
@@ -163,16 +239,6 @@ export function RecommendationScreen({
 
 type DetailScreenProps = { blurb: string; onClose: () => void }
 
-const DETAIL_SCREENS: Record<
-  Exclude<RecommendationAction, 'sell'>,
-  (props: DetailScreenProps) => ReactElement
-> = {
-  fix: RepairScreen,
-  tradeIn: TradeInScreen,
-  donate: DonateScreen,
-  recycle: RecycleScreen,
-}
-
 function DetailScreen({
   action,
   blurb,
@@ -180,22 +246,20 @@ function DetailScreen({
   photos,
   onClose,
 }: DetailScreenProps & {
-  action: RecommendationAction
+  action: ExpandableAction
   listing: PreviewForm
   photos: Record<Slot, string | null>
 }) {
-  if (action === 'sell') {
-    return (
-      <SellScreen
-        blurb={blurb}
-        listing={listing}
-        photos={photos}
-        onClose={onClose}
-      />
-    )
+  switch (action) {
+    case 'fix':
+      return <RepairScreen blurb={blurb} onClose={onClose} />
+    case 'sell':
+      return <SellScreen blurb={blurb} listing={listing} photos={photos} onClose={onClose} />
+    case 'donate':
+      return <DonateScreen blurb={blurb} onClose={onClose} />
+    case 'recycle':
+      return <RecycleScreen blurb={blurb} onClose={onClose} />
   }
-  const Screen = DETAIL_SCREENS[action]
-  return <Screen blurb={blurb} onClose={onClose} />
 }
 
 // Pulsing placeholder card while Gemini decides.
@@ -205,8 +269,18 @@ function CardSkeleton() {
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 0.4, duration: 650, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 650, useNativeDriver: true }),
+        Animated.timing(pulse, {
+          toValue: 0.4,
+          duration: 650,
+          easing: Easing.bezier(0.22, 1, 0.36, 1),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 650,
+          easing: Easing.bezier(0.22, 1, 0.36, 1),
+          useNativeDriver: true,
+        }),
       ]),
     )
     loop.start()
@@ -233,16 +307,54 @@ function CardSkeleton() {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000',
-    paddingTop: 84,
+    backgroundColor: colors.paper,
+    paddingTop: 56,
     paddingBottom: 48,
   },
-  title: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: '700',
-    textAlign: 'center',
+  header: {
+    paddingHorizontal: 24,
     marginBottom: 20,
+  },
+  navRow: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  back: {
+    minHeight: 44,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    marginLeft: -8,
+    paddingHorizontal: 8,
+  },
+  backText: {
+    color: colors.pine,
+    fontFamily: fonts.displayMedium,
+    fontSize: 17,
+  },
+  startOver: {
+    minHeight: 44,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.danger,
+    borderRadius: radius.pill,
+  },
+  startOverText: {
+    color: colors.ctaText,
+    fontFamily: fonts.displaySemiBold,
+    fontSize: 14,
+  },
+  title: {
+    color: colors.ink,
+    fontFamily: fonts.displaySemiBold,
+    fontSize: 25,
+    letterSpacing: -0.4,
+    textAlign: 'left',
+    marginTop: 12,
   },
   page: {
     width: PAGE_WIDTH,
@@ -251,44 +363,89 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    backgroundColor: '#1c1c1e',
-    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.line,
     padding: 24,
   },
   cardRecommended: {
-    borderWidth: 1,
-    borderColor: '#34c759',
+    borderColor: colors.pine,
+    borderWidth: 2,
+    backgroundColor: colors.pineSoft,
+  },
+  cardContent: {
+    flexGrow: 1,
   },
   badge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#34c759',
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginBottom: 16,
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    borderWidth: 2,
+    borderColor: colors.pine,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
   },
   badgeText: {
-    color: '#000',
-    fontSize: 13,
-    fontWeight: '600',
+    color: colors.pine,
+    fontFamily: fonts.monoMedium,
+    fontSize: 10,
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
   },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 12,
-  },
-  emoji: {
-    fontSize: 32,
+  actionIcon: {
+    marginBottom: 22,
   },
   cardTitle: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: '700',
+    color: colors.ink,
+    fontFamily: fonts.displaySemiBold,
+    fontSize: 23,
+    letterSpacing: -0.2,
+    marginBottom: 14,
   },
   blurb: {
     flex: 1,
-    color: '#ddd',
+    color: colors.body,
+    fontSize: 16,
+    lineHeight: 25,
+  },
+  tradeInContent: {
+    flex: 1,
+  },
+  tradeInModel: {
+    color: colors.muted,
+    fontSize: 15,
+    marginBottom: 18,
+  },
+  tradeInEstimate: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.line,
+    paddingVertical: 18,
+    marginBottom: 18,
+  },
+  tradeInLabel: {
+    color: colors.muted,
+    fontFamily: fonts.monoMedium,
+    fontSize: 11,
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  tradeInValue: {
+    color: colors.ink,
+    fontFamily: fonts.monoMedium,
+    fontSize: 34,
+    marginBottom: 7,
+  },
+  tradeInNote: {
+    color: colors.muted,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  tradeInBlurb: {
+    color: colors.body,
     fontSize: 16,
     lineHeight: 24,
   },
@@ -298,19 +455,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#333',
+    borderTopColor: colors.line,
     marginTop: 16,
     paddingTop: 16,
   },
   expandRowText: {
-    color: '#0a84ff',
+    color: colors.pine,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 15,
-    fontWeight: '600',
   },
   expandRowChevron: {
-    color: '#0a84ff',
+    color: colors.pine,
+    fontFamily: fonts.displayBold,
     fontSize: 17,
-    fontWeight: '700',
   },
   cardButtons: {
     flexDirection: 'row',
@@ -326,19 +483,13 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#48484a',
+    backgroundColor: colors.line,
   },
   dotActive: {
-    backgroundColor: '#fff',
-  },
-  buttons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-    paddingTop: 20,
+    backgroundColor: colors.pine,
   },
   skeletonBlock: {
-    backgroundColor: '#3a3a3c',
-    borderRadius: 8,
+    backgroundColor: colors.line,
+    borderRadius: radius.card,
   },
 })

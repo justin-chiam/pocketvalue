@@ -7,16 +7,16 @@ export const SLOT_LABELS: Record<Slot, string> = {
 }
 
 export type PhoneCondition = 'good' | 'poor' | 'excellent' | 'new'
-export const CONDITIONS: PhoneCondition[] = ['new', 'excellent', 'good', 'poor']
+export const CONDITIONS: PhoneCondition[] = ['poor', 'good', 'excellent', 'new']
 
 export type RecommendationAction = 'fix' | 'sell' | 'tradeIn' | 'donate' | 'recycle'
 
-export const ACTIONS: { key: RecommendationAction; label: string; emoji: string }[] = [
-  { key: 'fix', label: 'Fix', emoji: '🔧' },
-  { key: 'sell', label: 'Sell', emoji: '💸' },
-  { key: 'tradeIn', label: 'Trade in', emoji: '🔁' },
-  { key: 'donate', label: 'Donate', emoji: '🎁' },
-  { key: 'recycle', label: 'Recycle', emoji: '♻️' },
+export const ACTIONS: { key: RecommendationAction; label: string }[] = [
+  { key: 'fix', label: 'Repair' },
+  { key: 'sell', label: 'Resell' },
+  { key: 'tradeIn', label: 'Trade in' },
+  { key: 'donate', label: 'Donate' },
+  { key: 'recycle', label: 'Recycle' },
 ]
 
 // All five blurbs are always present; `recommended` is the AI's single pick.

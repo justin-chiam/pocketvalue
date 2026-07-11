@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import { Animated, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native'
+import { Animated, Easing, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native'
+import { colors, radius } from '../theme'
 
 // iOS-style bottom sheet: dimmed backdrop fades in while the card
 // springs up from below the screen.
@@ -10,10 +11,10 @@ export function BottomSheet({ children }: { children: ReactNode }) {
   useEffect(() => {
     Animated.parallel([
       Animated.timing(backdropOpacity, { toValue: 1, duration: 220, useNativeDriver: true }),
-      Animated.spring(translateY, {
+      Animated.timing(translateY, {
         toValue: 0,
-        damping: 22,
-        stiffness: 240,
+        duration: 350,
+        easing: Easing.bezier(0.22, 1, 0.36, 1),
         useNativeDriver: true,
       }),
     ]).start()
@@ -39,17 +40,17 @@ export function BottomSheet({ children }: { children: ReactNode }) {
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: colors.backdrop,
   },
   sheetContainer: {
     flex: 1,
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#1c1c1e',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.card,
+    borderTopRightRadius: radius.card,
+    paddingHorizontal: 24,
     paddingTop: 8,
     paddingBottom: 34,
     maxHeight: '88%',
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 5,
     borderRadius: 3,
-    backgroundColor: '#48484a',
+    backgroundColor: colors.line,
     alignSelf: 'center',
     marginBottom: 4,
   },
