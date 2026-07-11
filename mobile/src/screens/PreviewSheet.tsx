@@ -19,11 +19,12 @@ type Props = {
   frontPhotoUri: string | null
   onStartOver: () => void
   onRetry: () => void
+  onContinue: () => void
 }
 
 // The preview view: an iOS-style card over the camera showing a skeleton
 // while Gemini analyzes, then the auto-filled editable form.
-export function PreviewSheet({ state, frontPhotoUri, onStartOver, onRetry }: Props) {
+export function PreviewSheet({ state, frontPhotoUri, onStartOver, onRetry, onContinue }: Props) {
   const { submitting, form, error, estimating, setForm } = state
 
   return (
@@ -106,7 +107,7 @@ export function PreviewSheet({ state, frontPhotoUri, onStartOver, onRetry }: Pro
           </ScrollView>
           <View style={styles.buttons}>
             <AppButton label="Start over" onPress={onStartOver} />
-            <AppButton label="Continue" onPress={() => console.log('Preview confirmed:', form)} />
+            <AppButton label="Continue" onPress={onContinue} />
           </View>
         </>
       ) : null}

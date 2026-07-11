@@ -6,7 +6,7 @@ Monorepo with separate `backend`, `frontend`, and `mobile` apps, no shared root 
 
 - **backend**: Node.js (ESM), TypeScript (run with `tsx`, no build step), Express 5, Google Gemini via `@google/genai` through Vertex AI, `dotenv`, `cors`, `multer`. Entry point `backend/index.ts`.
 - **frontend**: React 19 + Vite, plain JS (`.jsx`, not TypeScript), `react-router-dom` for client-side routing.
-- **mobile**: Expo SDK 54 (React Native), TypeScript, `expo-camera`. Entry point `mobile/App.tsx` (thin composition root); code lives in `mobile/src/` split into `screens/` (ScanScreen, PreviewSheet; a recommendation view is planned), `components/`, `hooks/` (`usePhotoCapture`, `usePreviewForm`), `api.ts`, and `types.ts`.
+- **mobile**: Expo SDK 54 (React Native), TypeScript, `expo-camera`. Entry point `mobile/App.tsx` (thin composition root); code lives in `mobile/src/` split into `screens/` (ScanScreen, PreviewSheet, RecommendationScreen), `components/`, `hooks/` (`usePhotoCapture`, `usePreviewForm`, `useRecommendation`), `api.ts`, and `types.ts`.
 
 ## Commands
 
@@ -64,4 +64,4 @@ Landing and app are kept as distinct pages/components/files in the same build an
 
 ## Status
 
-`backend/index.ts` exposes `GET /api/health`, a `POST /api/chat` text example, and `POST /api/device` which takes multipart `front` and `back` device photos and asks Gemini to identify the device and estimate resale value. `frontend` has a landing page and an app page wired up as described above; `AppPage.jsx` currently reuses the Gemini chat example as a placeholder. `mobile` has the two-photo capture flow (front/back, confirm, retake, Done button) — the Done button is not yet wired to `POST /api/device`.
+`backend/index.ts` exposes `GET /api/health` plus four Gemini-backed POST routes, all returning schema-constrained JSON in AUD: `/api/device` (legacy two-photo appraisal), `/api/preview` (photos → model/RAM/storage/condition/description/resale range), `/api/estimate` (edited form fields → recalculated resale range), and `/api/recommend` (form fields → fix/sell/tradeIn/donate/recycle blurbs + one recommended pick). `frontend` has a landing page and an app page wired up as described above; `AppPage.jsx` currently reuses an old Gemini chat example as a placeholder. `mobile` implements the full flow: scan (front/back + optional About-screen photo, confirm/retake) → preview sheet (skeleton while analyzing, auto-filled editable form, debounced re-estimation) → recommendation view (five swipeable cards, AI pick badged).

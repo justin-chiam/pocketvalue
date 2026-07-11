@@ -1,5 +1,5 @@
 import Constants from 'expo-constants'
-import type { PhoneCondition, Slot } from './types'
+import type { PhoneCondition, PreviewForm, Recommendation, Slot } from './types'
 
 // In Expo Go, "localhost" is the phone itself. Derive the dev machine's LAN IP
 // from the Metro host that serves the JS bundle; EXPO_PUBLIC_API_URL overrides.
@@ -61,6 +61,23 @@ export async function requestEstimate(input: {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
+  })
+  return parseOrThrow(res)
+}
+
+export async function requestRecommendation(form: PreviewForm): Promise<Recommendation> {
+  const res = await postWithRetry(`${API_URL}/api/recommend`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: form.model,
+      ramGb: Number(form.ramGb),
+      storageGb: Number(form.storageGb),
+      condition: form.condition,
+      description: form.description,
+      resaleLow: Number(form.resaleLow),
+      resaleHigh: Number(form.resaleHigh),
+    }),
   })
   return parseOrThrow(res)
 }

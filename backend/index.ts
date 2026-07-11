@@ -225,6 +225,86 @@ app.post('/api/estimate', async (req, res) => {
   }
 })
 
+// ---- Recommendation: fix / sell / trade in / donate / recycle ----
+
+type RecommendationAction = 'fix' | 'sell' | 'tradeIn' | 'donate' | 'recycle'
+const RECOMMENDATION_ACTIONS: RecommendationAction[] = [
+  'fix',
+  'sell',
+  'tradeIn',
+  'donate',
+  'recycle',
+]
+
+// One blurb per action, always all five, plus the single recommended pick.
+const recommendSchema = {
+  type: Type.OBJECT,
+  properties: {
+    recommended: { type: Type.STRING, enum: RECOMMENDATION_ACTIONS },
+    fix: {
+      type: Type.STRING,
+      description:
+        '2–3 sentences on repairing this device: what likely needs fixing and whether the cost is worth it.',
+    },
+    sell: {
+      type: Type.STRING,
+      description: '2–3 sentences on selling it privately: expected price, effort, best channels.',
+    },
+    tradeIn: {
+      type: Type.STRING,
+      description: '2–3 sentences on trading it in: typical trade-in value vs selling privately.',
+    },
+    donate: {
+      type: Type.STRING,
+      description: '2–3 sentences on donating it: who could still get good use out of it.',
+    },
+    recycle: {
+      type: Type.STRING,
+      description: '2–3 sentences on recycling it responsibly and when that is the right call.',
+    },
+  },
+  required: ['recommended', ...RECOMMENDATION_ACTIONS],
+}
+
+app.post('/api/recommend', async (req, res) => {
+  const { model, ramGb, storageGb, condition, description, resaleLow, resaleHigh } = req.body ?? {}
+
+  if (typeof model !== 'string' || !model.trim()) {
+    res.status(400).json({ error: 'model is required' })
+    return
+  }
+
+  const facts = [
+    `Device: ${model.trim()}`,
+    Number.isFinite(Number(ramGb)) ? `${Number(ramGb)} GB RAM` : null,
+    Number.isFinite(Number(storageGb)) ? `${Number(storageGb)} GB storage` : null,
+    typeof condition === 'string' && condition ? `condition: ${condition}` : null,
+    typeof description === 'string' && description ? `condition notes: ${description}` : null,
+    Number.isFinite(Number(resaleLow)) && Number.isFinite(Number(resaleHigh))
+      ? `estimated resale value: A$${Number(resaleLow)}–${Number(resaleHigh)}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join('; ')
+
+  const prompt = `You are advising the owner of a used device in Australia on what to do with it. ${facts}. For each of the five actions — fix, sell, trade in, donate, recycle — write 2–3 sentences tailored to this specific device and its condition, explaining what that path looks like and its trade-offs (use AUD for any amounts). Then pick the single action you would recommend for this device.`
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: recommendSchema,
+      },
+    })
+    res.json(JSON.parse(response.text ?? '{}'))
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Gemini request failed' })
+  }
+})
+
 const server = app.listen(port, () => {
   console.log(`Backend listening on http://localhost:${port}`)
 })
