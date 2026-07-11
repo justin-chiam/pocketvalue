@@ -26,7 +26,13 @@ import {
 import { AppButton } from '../components/AppButton'
 import type { RecommendationState } from '../hooks/useRecommendation'
 import { getTradeInEstimate } from '../tradeIn'
-import { ACTIONS, type PreviewForm, type RecommendationAction, type Slot } from '../types'
+import {
+  ACTIONS,
+  type PreviewForm,
+  type RecommendationAction,
+  type RepairPlan,
+  type Slot,
+} from '../types'
 import { colors, fonts, radius } from '../theme'
 import { RepairScreen } from './RepairScreen'
 import { SellScreen } from './SellScreen'
@@ -226,6 +232,7 @@ export function RecommendationScreen({
             <DetailScreen
               action={expanded}
               blurb={data[expanded]}
+              repairPlan={data.repairPlan}
               listing={listing}
               photos={photos}
               onClose={() => setExpanded(null)}
@@ -242,17 +249,26 @@ type DetailScreenProps = { blurb: string; onClose: () => void }
 function DetailScreen({
   action,
   blurb,
+  repairPlan,
   listing,
   photos,
   onClose,
 }: DetailScreenProps & {
   action: ExpandableAction
+  repairPlan: RepairPlan
   listing: PreviewForm
   photos: Record<Slot, string | null>
 }) {
   switch (action) {
     case 'fix':
-      return <RepairScreen blurb={blurb} onClose={onClose} />
+      return (
+        <RepairScreen
+          blurb={blurb}
+          plan={repairPlan}
+          model={listing.model}
+          onClose={onClose}
+        />
+      )
     case 'sell':
       return <SellScreen blurb={blurb} listing={listing} photos={photos} onClose={onClose} />
     case 'donate': {
