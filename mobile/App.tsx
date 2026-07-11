@@ -34,9 +34,11 @@ export default function App() {
           onContinue={recommend}
         />
       )}
-      {recommendation.isOpen && (
+      {recommendation.isOpen && previewForm.form && (
         <RecommendationScreen
           state={recommendation}
+          listing={previewForm.form}
+          photos={capture.photos}
           onBack={recommendation.reset}
           onStartOver={startOver}
           onRetry={recommend}
