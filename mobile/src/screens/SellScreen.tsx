@@ -22,8 +22,6 @@ const MARKETPLACE_CONDITION: Record<PhoneCondition, string> = {
   excellent: 'Used – like new',
   good: 'Used – good',
   poor: 'Used – fair',
-  // Marketplace has no lower tier than fair; the description carries the damage.
-  damaged: 'Used – fair',
 }
 
 type Props = {

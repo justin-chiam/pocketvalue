@@ -21,6 +21,9 @@ import { colors, fonts, radius } from '../theme'
 
 const ERROR_COLOR = colors.danger
 const PLACEHOLDER_COLOR = colors.muted
+// The slider track is inset by half a stop cell on each side so the end
+// stops sit centred in their cells (also mirrored in indexFromTouchX).
+const TRACK_INSET = `${50 / CONDITIONS.length}%` as const
 
 type RequiredField = 'model' | 'ram' | 'storage' | 'battery' | 'description'
 
@@ -333,7 +336,7 @@ export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }
             {form.resaleLow !== '' && form.resaleHigh !== '' ? (
               <View style={styles.resaleRow}>
                 <Text style={styles.resaleValue}>
-                  ${form.resaleLow} – ${form.resaleHigh}
+                  ${form.resaleLow}-${form.resaleHigh}
                 </Text>
                 {estimating && <ActivityIndicator size="small" color={colors.pine} />}
               </View>
@@ -460,13 +463,11 @@ const styles = StyleSheet.create({
     position: 'relative',
     minHeight: 58,
   },
-  // Left/right insets are half a stop cell (0.5 / CONDITIONS.length), so the
-  // end stops sit centred in their cells — update if the stop count changes.
   conditionTrack: {
     position: 'absolute',
     top: 10,
-    left: '10%',
-    right: '10%',
+    left: TRACK_INSET,
+    right: TRACK_INSET,
     height: 2,
     borderRadius: radius.pill,
     backgroundColor: colors.line,
@@ -478,8 +479,8 @@ const styles = StyleSheet.create({
   conditionTrackActiveMask: {
     position: 'absolute',
     top: 10,
-    left: '10%',
-    right: '10%',
+    left: TRACK_INSET,
+    right: TRACK_INSET,
     height: 2,
     borderRadius: radius.pill,
     overflow: 'hidden',
@@ -539,7 +540,7 @@ const styles = StyleSheet.create({
   conditionLabel: {
     color: colors.body,
     fontFamily: fonts.displayMedium,
-    fontSize: 9,
+    fontSize: 12,
   },
   conditionLabelSelected: {
     color: colors.pine,

@@ -41,7 +41,7 @@ const imagePart = (file: Express.Multer.File) => ({
 })
 
 const devicePrompt =
-  'These are photos of the front and back of a device. If a third photo is included, it shows the device\'s software About screen (e.g. iOS Settings > General > About) — use it to pin down the exact model, storage, and version. Identify the make and model, rate its visible condition (damaged, poor, good, excellent, or new), and estimate its used resale value in Australian dollars (AUD) as a low–high range.'
+  'These are photos of the front and back of a device. If a third photo is included, it shows the device\'s software About screen (e.g. iOS Settings > General > About) — use it to pin down the exact model, storage, and version. Identify the make and model, rate its visible condition (poor, good, excellent, or new), and estimate its used resale value in Australian dollars (AUD) as a low–high range.'
 
 // Constrained decoding: Gemini can only emit JSON matching this schema.
 const deviceSchema = {
@@ -51,7 +51,7 @@ const deviceSchema = {
     model: { type: Type.STRING },
     condition: {
       type: Type.STRING,
-      enum: ['damaged', 'poor', 'good', 'excellent', 'new'],
+      enum: ['poor', 'good', 'excellent', 'new'],
     },
     resaleValueAud: {
       type: Type.OBJECT,
@@ -105,7 +105,7 @@ app.post('/api/device', deviceUpload, async (req, res) => {
 
 // ---- Preview form (auto-filled device appraisal) ----
 
-type PhoneCondition = 'damaged' | 'good' | 'poor' | 'excellent' | 'new'
+type PhoneCondition = 'good' | 'poor' | 'excellent' | 'new'
 
 interface DevicePreview {
   deviceDetected: boolean
@@ -135,7 +135,7 @@ const previewSchema = {
     storageGb: { type: Type.NUMBER, description: 'Estimated storage in GB' },
     condition: {
       type: Type.STRING,
-      enum: ['damaged', 'poor', 'good', 'excellent', 'new'] satisfies PhoneCondition[],
+      enum: ['poor', 'good', 'excellent', 'new'] satisfies PhoneCondition[],
     },
     description: {
       type: Type.STRING,
