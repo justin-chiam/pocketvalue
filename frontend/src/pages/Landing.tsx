@@ -433,6 +433,9 @@ function Landing() {
 
       <footer className="footer">
         <span className="wordmark">PocketValue</span>
+        <p className="footer-credit">
+          Made with <span role="img" aria-label="love">❤️</span> by Justin, Benji, and Lemuel
+        </p>
         <p>Built at the 2026 CSESoc Flagship Hackathon</p>
       </footer>
     </div>
