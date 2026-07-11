@@ -424,7 +424,7 @@ app.post('/api/recycle-locations', async (req, res) => {
       contents: `A user near ${location.trim()} wants to recycle their ${model.trim()}. Using only the real e-waste recycling centres in the search findings below, write an intro sentence of the form "Based on your location, here's where you can recycle your ${model.trim()}." and list the recycling centres.\n\nSearch findings:\n${search.text}`,
       config: {
         responseMimeType: 'application/json',
-        responseSchema: donateLocationsSchema,
+        responseSchema: recycleLocationsSchema,
         thinkingConfig: { thinkingBudget: 0 },
       },
     })
