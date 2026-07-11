@@ -62,6 +62,16 @@ Note: Vertex AI was renamed "Gemini Enterprise Agent Platform" in the GCP consol
 
 Landing and app are kept as distinct pages/components/files in the same build and deploy — not separate directories or deployments.
 
+## Design system
+
+`DESIGN.md` at the repo root documents the brand's colors, typography,
+spacing, motion, and component patterns, extracted from the landing page
+(`frontend/src/pages/Landing.tsx` + `Landing.css`), which is currently the
+only on-brand surface. It also tracks which surfaces (`/app`, `mobile`) are
+still out of sync and what needs to change to bring them in line. Consult it
+before styling any new UI so surfaces stay visually consistent, and update it
+if the design system itself changes.
+
 ## Status
 
 `backend/index.ts` exposes `GET /api/health` plus four Gemini-backed POST routes, all returning schema-constrained JSON in AUD: `/api/device` (legacy two-photo appraisal), `/api/preview` (photos → model/RAM/storage/condition/description/resale range), `/api/estimate` (edited form fields → recalculated resale range), and `/api/recommend` (form fields → fix/sell/tradeIn/donate/recycle blurbs + one recommended pick). `frontend` has a landing page and an app page wired up as described above; `AppPage.jsx` currently reuses an old Gemini chat example as a placeholder. `mobile` implements the full flow: scan (front/back + optional About-screen photo, confirm/retake) → preview sheet (skeleton while analyzing, auto-filled editable form, debounced re-estimation) → recommendation view (five swipeable cards, AI pick badged).
