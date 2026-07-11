@@ -13,7 +13,13 @@ import {
 } from 'react-native'
 import { AppButton } from '../components/AppButton'
 import type { RecommendationState } from '../hooks/useRecommendation'
-import { ACTIONS, Recommendation, type RecommendationAction } from '../types'
+import {
+  ACTIONS,
+  Recommendation,
+  type PreviewForm,
+  type RecommendationAction,
+  type Slot,
+} from '../types'
 import { RepairScreen } from './RepairScreen'
 import { SellScreen } from './SellScreen'
 import { TradeInScreen } from './TradeInScreen'
@@ -24,6 +30,8 @@ const PAGE_WIDTH = Dimensions.get('window').width
 
 type Props = {
   state: RecommendationState
+  listing: PreviewForm
+  photos: Record<Slot, string | null>
   onBack: () => void
   onStartOver: () => void
   onRetry: () => void
@@ -31,7 +39,14 @@ type Props = {
 
 // The recommendation view: all five options (fix / sell / trade in / donate /
 // recycle) as swipeable cards, with the AI's pick badged and shown first.
-export function RecommendationScreen({ state, onBack, onStartOver, onRetry }: Props) {
+export function RecommendationScreen({
+  state,
+  listing,
+  photos,
+  onBack,
+  onStartOver,
+  onRetry,
+}: Props) {
   const { loading, data, error } = state
   const [page, setPage] = useState(0)
   const [expanded, setExpanded] = useState<RecommendationAction | null>(null)
@@ -135,6 +150,8 @@ export function RecommendationScreen({ state, onBack, onStartOver, onRetry }: Pr
             <DetailScreen
               action={expanded}
               blurb={data[expanded]}
+              listing={listing}
+              photos={photos}
               onClose={() => setExpanded(null)}
             />
           )}
@@ -146,9 +163,11 @@ export function RecommendationScreen({ state, onBack, onStartOver, onRetry }: Pr
 
 type DetailScreenProps = { blurb: string; onClose: () => void }
 
-const DETAIL_SCREENS: Record<RecommendationAction, (props: DetailScreenProps) => ReactElement> = {
+const DETAIL_SCREENS: Record<
+  Exclude<RecommendationAction, 'sell'>,
+  (props: DetailScreenProps) => ReactElement
+> = {
   fix: RepairScreen,
-  sell: SellScreen,
   tradeIn: TradeInScreen,
   donate: DonateScreen,
   recycle: RecycleScreen,
@@ -157,8 +176,24 @@ const DETAIL_SCREENS: Record<RecommendationAction, (props: DetailScreenProps) =>
 function DetailScreen({
   action,
   blurb,
+  listing,
+  photos,
   onClose,
-}: DetailScreenProps & { action: RecommendationAction }) {
+}: DetailScreenProps & {
+  action: RecommendationAction
+  listing: PreviewForm
+  photos: Record<Slot, string | null>
+}) {
+  if (action === 'sell') {
+    return (
+      <SellScreen
+        blurb={blurb}
+        listing={listing}
+        photos={photos}
+        onClose={onClose}
+      />
+    )
+  }
   const Screen = DETAIL_SCREENS[action]
   return <Screen blurb={blurb} onClose={onClose} />
 }
