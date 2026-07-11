@@ -26,7 +26,7 @@ import {
 import { AppButton } from '../components/AppButton'
 import type { RecommendationState } from '../hooks/useRecommendation'
 import { getTradeInEstimate } from '../tradeIn'
-import { ACTIONS, type PreviewForm, type RecommendationAction } from '../types'
+import { ACTIONS, type PreviewForm, type RecommendationAction, type Slot } from '../types'
 import { colors, fonts, radius } from '../theme'
 import { RepairScreen } from './RepairScreen'
 import { SellScreen } from './SellScreen'
@@ -37,10 +37,11 @@ const PAGE_WIDTH = Dimensions.get('window').width
 
 type Props = {
   state: RecommendationState
+  listing: PreviewForm
+  photos: Record<Slot, string | null>
   onBack: () => void
   onStartOver: () => void
   onRetry: () => void
-  form: PreviewForm
 }
 
 type ExpandableAction = Exclude<RecommendationAction, 'tradeIn'>
@@ -55,11 +56,18 @@ const ACTION_ICONS: Record<RecommendationAction, Icon> = {
 
 // The recommendation view: all five options (fix / sell / trade in / donate /
 // recycle) as swipeable cards, with the AI's pick badged and shown first.
-export function RecommendationScreen({ state, onBack, onStartOver, onRetry, form }: Props) {
+export function RecommendationScreen({
+  state,
+  listing,
+  photos,
+  onBack,
+  onStartOver,
+  onRetry,
+}: Props) {
   const { loading, data, error } = state
   const [page, setPage] = useState(0)
   const [expanded, setExpanded] = useState<ExpandableAction | null>(null)
-  const tradeInEstimate = getTradeInEstimate(form)
+  const tradeInEstimate = getTradeInEstimate(listing)
 
   const recommendedIndex = data ? ACTIONS.findIndex((a) => a.key === data.recommended) : 0
 
@@ -170,7 +178,7 @@ export function RecommendationScreen({ state, onBack, onStartOver, onRetry, form
                       <Text style={styles.cardTitle}>{item.label}</Text>
                       {item.key === 'tradeIn' ? (
                         <View style={styles.tradeInContent}>
-                          <Text style={styles.tradeInModel}>{form.model || 'Detected device'}</Text>
+                          <Text style={styles.tradeInModel}>{listing.model || 'Detected device'}</Text>
                           <View style={styles.tradeInEstimate}>
                             <Text style={styles.tradeInLabel}>Estimated trade-in value</Text>
                             <Text style={styles.tradeInValue}>${tradeInEstimate.valueAud} AUD</Text>
@@ -218,6 +226,8 @@ export function RecommendationScreen({ state, onBack, onStartOver, onRetry, form
             <DetailScreen
               action={expanded}
               blurb={data[expanded]}
+              listing={listing}
+              photos={photos}
               onClose={() => setExpanded(null)}
             />
           )}
@@ -232,13 +242,19 @@ type DetailScreenProps = { blurb: string; onClose: () => void }
 function DetailScreen({
   action,
   blurb,
+  listing,
+  photos,
   onClose,
-}: DetailScreenProps & { action: ExpandableAction }) {
+}: DetailScreenProps & {
+  action: ExpandableAction
+  listing: PreviewForm
+  photos: Record<Slot, string | null>
+}) {
   switch (action) {
     case 'fix':
       return <RepairScreen blurb={blurb} onClose={onClose} />
     case 'sell':
-      return <SellScreen blurb={blurb} onClose={onClose} />
+      return <SellScreen blurb={blurb} listing={listing} photos={photos} onClose={onClose} />
     case 'donate':
       return <DonateScreen blurb={blurb} onClose={onClose} />
     case 'recycle':

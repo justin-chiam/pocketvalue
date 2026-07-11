@@ -47,16 +47,17 @@ export default function App() {
       {previewForm.isOpen && !recommendation.isOpen && (
         <PreviewSheet
           state={previewForm}
-          frontPhotoUri={capture.photos.front}
+          photos={capture.photos}
           onStartOver={startOver}
           onRetry={analyze}
           onContinue={recommend}
         />
       )}
-      {recommendation.isOpen && previewForm.form !== null && (
+      {recommendation.isOpen && previewForm.form && (
         <RecommendationScreen
           state={recommendation}
-          form={previewForm.form}
+          listing={previewForm.form}
+          photos={capture.photos}
           onBack={recommendation.reset}
           onStartOver={startOver}
           onRetry={recommend}

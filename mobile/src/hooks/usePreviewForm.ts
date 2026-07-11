@@ -26,7 +26,17 @@ export function usePreviewForm() {
     const storage = Number(storageGb)
     const battery = Number(batteryPct)
     const valid =
-      !!model?.trim() && Number.isFinite(ram) && Number.isFinite(storage) && Number.isFinite(battery)
+      !!model?.trim() &&
+      !!ramGb?.trim() &&
+      !!storageGb?.trim() &&
+      !!batteryPct?.trim() &&
+      Number.isFinite(ram) &&
+      Number.isFinite(storage) &&
+      Number.isFinite(battery) &&
+      ram > 0 &&
+      storage > 0 &&
+      battery >= 1 &&
+      battery <= 100
     // Invalid input (e.g. "hello" for storage): keep the previous estimate.
     if (!valid) return
     const inputsKey = JSON.stringify([model!.trim(), ram, storage, battery, condition])
@@ -66,25 +76,16 @@ export function usePreviewForm() {
         back: photos.back,
         settings: photos.settings,
       })
-      // Battery health isn't visible in photos, so it starts at a sensible
-      // default (100%) and is left entirely to the user to correct.
-      const defaultBatteryPct = 100
-      // Seed the ref so the debounced effect doesn't immediately re-estimate
-      // the values Gemini just produced.
-      lastEstimatedRef.current = JSON.stringify([
-        (data.model ?? '').trim(),
-        Number(data.ramGb),
-        Number(data.storageGb),
-        defaultBatteryPct,
-        data.condition ?? 'good',
-      ])
+      // Battery health isn't visible in photos, so the user must enter it
+      // before continuing. Re-estimation begins once a valid value is entered.
+      lastEstimatedRef.current = null
       setFormState({
         model: data.model ?? '',
         resaleLow: String(data.resaleValueAud?.low ?? ''),
         resaleHigh: String(data.resaleValueAud?.high ?? ''),
         ramGb: String(data.ramGb ?? ''),
         storageGb: String(data.storageGb ?? ''),
-        batteryPct: String(defaultBatteryPct),
+        batteryPct: '',
         condition: data.condition ?? 'good',
         description: data.description ?? '',
       })

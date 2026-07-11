@@ -27,7 +27,14 @@
           "cameraPermission": "Allow this app to use the camera to photograph your device."
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow PocketValue to access your photos for Marketplace listings.",
+          "savePhotosPermission": "Allow PocketValue to save your device scan photos for Marketplace listings."
+        }
+      ]
     ]
   }
 }
