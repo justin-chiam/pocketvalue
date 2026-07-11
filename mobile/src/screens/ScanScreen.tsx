@@ -120,22 +120,24 @@ export function ScanScreen({ capture, onDone }: Props) {
             {retakeSlot
               ? `Retake the ${SLOT_LABELS[retakeSlot].toLowerCase()} photo`
               : targetSlot === 'front'
-                ? 'Take a photo of the front'
+                ? 'Take a photo of the front of the device'
                 : targetSlot === 'back'
-                  ? 'Take a photo of the back'
-                  : 'Photograph Settings › General › About'}
+                  ? 'Take a photo of the back of the device'
+                  : 'Take a photo of the screen in \nSettings › General › About your Device'}
           </Text>
         )}
-        <View style={styles.previewRow}>
-          {(['front', 'back', 'settings'] as Slot[]).map(
-            (slot) =>
-              photos[slot] && (
-                <TouchableOpacity key={slot} onPress={() => setViewingSlot(slot)}>
-                  <Image source={{ uri: photos[slot]! }} style={styles.previewBox} />
-                </TouchableOpacity>
-              ),
-          )}
-        </View>
+        {photos.front || photos.back || photos.settings ? (
+          <View style={styles.previewRow}>
+            {(['front', 'back', 'settings'] as Slot[]).map(
+              (slot) =>
+                photos[slot] && (
+                  <TouchableOpacity key={slot} onPress={() => setViewingSlot(slot)}>
+                    <Image source={{ uri: photos[slot]! }} style={styles.previewBox} />
+                  </TouchableOpacity>
+                ),
+            )}
+          </View>
+        ) : null}
         <View style={styles.shutterRow}>
           <TouchableOpacity
             style={[styles.shutterButton, !canShoot && styles.shutterDisabled]}
@@ -192,7 +194,7 @@ const styles = StyleSheet.create({
   },
   controls: {
     position: 'absolute',
-    bottom: 48,
+    bottom: 62,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -207,6 +209,7 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     borderRadius: radius.pill,
     overflow: 'hidden',
+    textAlign: 'center'
   },
   previewRow: {
     flexDirection: 'row',
@@ -233,7 +236,7 @@ const styles = StyleSheet.create({
     borderRadius: 36,
     borderWidth: 3,
     borderColor: colors.ctaText,
-    backgroundColor: colors.pineOverlay,
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -244,9 +247,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.pine,
-    borderWidth: 1,
-    borderColor: colors.pineBody,
+    backgroundColor: colors.ctaText,
   },
   doneButton: {
     position: 'absolute',

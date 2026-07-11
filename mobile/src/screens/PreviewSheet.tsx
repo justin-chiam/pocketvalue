@@ -11,6 +11,7 @@ import {
   View,
   type GestureResponderEvent,
 } from 'react-native'
+import { InfoIcon } from 'phosphor-react-native'
 import { AppButton } from '../components/AppButton'
 import { BottomSheet } from '../components/BottomSheet'
 import { FormSkeleton } from '../components/FormSkeleton'
@@ -60,7 +61,9 @@ export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }
   const indexFromTouchX = (x: number) => {
     const width = trackWidthRef.current
     if (width <= 0) return selectedConditionIndex
-    const inset = width * 0.125
+    // Track is inset by half a stop cell on each side so the end stops sit
+    // centred in their cells (must match the styles' left/right insets).
+    const inset = width * (0.5 / CONDITIONS.length)
     const usable = width - inset * 2
     const clamped = Math.min(Math.max(x, inset), width - inset)
     return ((clamped - inset) / usable) * (CONDITIONS.length - 1)
@@ -90,13 +93,16 @@ export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }
     onPanResponderRelease: () => setIsDraggingCondition(false),
     onPanResponderTerminate: () => setIsDraggingCondition(false),
   })
+  const stopIndices = CONDITIONS.map((_, i) => i)
   const conditionThumbLeft = conditionThumb.interpolate({
-    inputRange: [0, 1, 2, 3],
-    outputRange: ['12.5%', '37.5%', '62.5%', '87.5%'],
+    inputRange: stopIndices,
+    outputRange: CONDITIONS.map((_, i) => `${((i + 0.5) / CONDITIONS.length) * 100}%`),
   })
+  // Percentage of conditionTrackActiveMask's own width (the inset span),
+  // not of the full slider — the mask is what carries the border radius now.
   const conditionTrackActiveWidth = conditionThumb.interpolate({
-    inputRange: [0, 1, 2, 3],
-    outputRange: ['0%', '25%', '50%', '75%'],
+    inputRange: stopIndices,
+    outputRange: CONDITIONS.map((_, i) => `${(i / (CONDITIONS.length - 1)) * 100}%`),
   })
   const showModelError =
     attemptedContinue &&
@@ -138,7 +144,7 @@ export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }
   return (
     <BottomSheet>
       {submitting ? (
-        <FormSkeleton />
+        <FormSkeleton photoCount={photoEntries.length} />
       ) : error !== null ? (
         <View>
           <Text style={styles.errorTitle}>Something went wrong</Text>
@@ -262,9 +268,18 @@ export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }
               {...conditionPanResponder.panHandlers}
             >
               <View style={styles.conditionTrack} />
-              <Animated.View
-                style={[styles.conditionTrackActive, { width: conditionTrackActiveWidth }]}
-              />
+              <View style={styles.conditionTrackActiveMask}>
+                <Animated.View
+                  style={[styles.conditionTrackActiveFill, { width: conditionTrackActiveWidth }]}
+                />
+              </View>
+              <View style={styles.conditionTicks} pointerEvents="none">
+                {CONDITIONS.map((condition) => (
+                  <View key={condition} style={styles.conditionTickCell}>
+                    <View style={styles.conditionTick} />
+                  </View>
+                ))}
+              </View>
               <View style={styles.conditionStops} pointerEvents="none">
                 {CONDITIONS.map((condition) => {
                   const selected = form.condition === condition
@@ -272,7 +287,10 @@ export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }
 
                   return (
                     <View key={condition} style={styles.conditionStop}>
-                      <View style={[styles.conditionLabelPill, selected && styles.conditionLabelPillSelected]}>
+                      <View style={styles.conditionLabelPill}>
+                        <View
+                          style={[styles.conditionLabelPillBg, { opacity: selected ? 1 : 0 }]}
+                        />
                         <Text
                           style={[
                             styles.conditionLabel,
@@ -312,12 +330,26 @@ export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }
 
             <Text style={styles.fieldLabel}>Estimated resale value (AUD)</Text>
             {/* AI-estimated, not editable — re-estimated when the fields above change */}
-            <View style={styles.resaleRow}>
-              <Text style={styles.resaleValue}>
-                ${form.resaleLow} – ${form.resaleHigh}
-              </Text>
-              {estimating && <ActivityIndicator size="small" color={colors.pine} />}
-            </View>
+            {form.resaleLow !== '' && form.resaleHigh !== '' ? (
+              <View style={styles.resaleRow}>
+                <Text style={styles.resaleValue}>
+                  ${form.resaleLow} – ${form.resaleHigh}
+                </Text>
+                {estimating && <ActivityIndicator size="small" color={colors.pine} />}
+              </View>
+            ) : (
+              <View style={styles.resaleCallout}>
+                {estimating ? (
+                  <ActivityIndicator size="small" color={colors.pine} />
+                ) : (
+                  <InfoIcon size={20} color={colors.pine} />
+                )}
+                <Text style={styles.resaleCalloutText}>
+                  Not enough info yet. Fill in RAM, storage and battery health to get an
+                  estimate.
+                </Text>
+              </View>
+            )}
           </ScrollView>
           <View style={styles.buttons}>
             <AppButton label="Start over" onPress={onStartOver} variant="secondary" />
@@ -428,19 +460,32 @@ const styles = StyleSheet.create({
     position: 'relative',
     minHeight: 58,
   },
+  // Left/right insets are half a stop cell (0.5 / CONDITIONS.length), so the
+  // end stops sit centred in their cells — update if the stop count changes.
   conditionTrack: {
     position: 'absolute',
     top: 10,
-    left: '12.5%',
-    right: '12.5%',
+    left: '10%',
+    right: '10%',
     height: 2,
+    borderRadius: radius.pill,
     backgroundColor: colors.line,
   },
-  conditionTrackActive: {
+  // Static size/position — carries the border radius + clip. Animating width
+  // and borderRadius on the same view is an RN/Android bug where the rounded
+  // corners reset to square mid-animation; the fill inside stays a plain
+  // rectangle and gets clipped by this fixed mask instead.
+  conditionTrackActiveMask: {
     position: 'absolute',
     top: 10,
-    left: '12.5%',
+    left: '10%',
+    right: '10%',
     height: 2,
+    borderRadius: radius.pill,
+    overflow: 'hidden',
+  },
+  conditionTrackActiveFill: {
+    height: '100%',
     backgroundColor: colors.pine,
   },
   conditionThumb: {
@@ -451,6 +496,23 @@ const styles = StyleSheet.create({
     marginLeft: -13,
     borderRadius: radius.pill,
     backgroundColor: colors.pine,
+  },
+  conditionTicks: {
+    position: 'absolute',
+    top: 6,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+  },
+  conditionTickCell: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  conditionTick: {
+    width: 2,
+    height: 10,
+    borderRadius: 1,
+    backgroundColor: colors.line,
   },
   conditionStops: {
     flexDirection: 'row',
@@ -464,15 +526,20 @@ const styles = StyleSheet.create({
     marginTop: 30,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 50,
   },
-  conditionLabelPillSelected: {
+  // The backdrop is a separate always-mounted view toggled via opacity only:
+  // changing a view's backgroundColor mid-drag rebuilds its Android background
+  // drawable and drops the borderRadius, but opacity never touches the
+  // drawable, so the radius survives.
+  conditionLabelPillBg: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 50,
     backgroundColor: colors.pineSoft,
   },
   conditionLabel: {
     color: colors.body,
     fontFamily: fonts.displayMedium,
-    fontSize: 12,
+    fontSize: 9,
   },
   conditionLabelSelected: {
     color: colors.pine,
@@ -491,6 +558,24 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontFamily: fonts.monoMedium,
     fontSize: 24,
+  },
+  resaleCallout: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: colors.pineSoft,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.pineBody,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  resaleCalloutText: {
+    flex: 1,
+    color: colors.pine,
+    fontFamily: fonts.displayMedium,
+    fontSize: 14,
+    lineHeight: 20,
   },
   errorTitle: {
     color: colors.ink,

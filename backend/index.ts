@@ -41,7 +41,7 @@ const imagePart = (file: Express.Multer.File) => ({
 })
 
 const devicePrompt =
-  'These are photos of the front and back of a device. If a third photo is included, it shows the device\'s software About screen (e.g. iOS Settings > General > About) — use it to pin down the exact model, storage, and version. Identify the make and model, rate its visible condition (poor, good, excellent, or new), and estimate its used resale value in Australian dollars (AUD) as a low–high range.'
+  'These are photos of the front and back of a device. If a third photo is included, it shows the device\'s software About screen (e.g. iOS Settings > General > About) — use it to pin down the exact model, storage, and version. Identify the make and model, rate its visible condition (damaged, poor, good, excellent, or new), and estimate its used resale value in Australian dollars (AUD) as a low–high range.'
 
 // Constrained decoding: Gemini can only emit JSON matching this schema.
 const deviceSchema = {
@@ -51,7 +51,7 @@ const deviceSchema = {
     model: { type: Type.STRING },
     condition: {
       type: Type.STRING,
-      enum: ['poor', 'good', 'excellent', 'new'],
+      enum: ['damaged', 'poor', 'good', 'excellent', 'new'],
     },
     resaleValueAud: {
       type: Type.OBJECT,
@@ -105,20 +105,19 @@ app.post('/api/device', deviceUpload, async (req, res) => {
 
 // ---- Preview form (auto-filled device appraisal) ----
 
-type PhoneCondition = 'good' | 'poor' | 'excellent' | 'new'
+type PhoneCondition = 'damaged' | 'good' | 'poor' | 'excellent' | 'new'
 
 interface DevicePreview {
   deviceDetected: boolean
   model: string
-  resaleValueAud: { low: number; high: number }
-  ramGb: number
-  storageGb: number
+  ramGb?: number
+  storageGb?: number
   condition: PhoneCondition
   description: string
 }
 
 const previewPrompt =
-  "These are photos submitted by a user who claims they show the front and back of a phone or other tech device. If a third photo is included, it shows the device's software About screen (e.g. iOS Settings > General > About) — use it to pin down the exact model and storage. First, check whether a phone or tech device is actually, clearly visible in the photos. If no such device is visible — e.g. the photos show a person, a room, an unrelated object, are blank, blurry, or otherwise don't contain a device — set deviceDetected to false and leave the other fields as zero/empty placeholders; do not guess or invent a device. Only if a device is clearly visible, set deviceDetected to true and identify the device, estimate its specs and its used resale value in Australian dollars (AUD), rate its visible condition, and write a short description (under 50 words) focused on the physical condition you can actually see in the photos — scratches, dents, cracked screen or glass, worn edges, missing parts. Do not include the release year."
+  "These are photos submitted by a user who claims they show the front and back of a phone or other tech device. If a third photo is included, it shows the device's software About screen (e.g. iOS Settings > General > About) — use it to pin down the exact model and storage. First, check whether a phone or tech device is actually, clearly visible in the photos. If no such device is visible — e.g. the photos show a person, a room, an unrelated object, are blank, blurry, or otherwise don't contain a device — set deviceDetected to false and leave the other fields as zero/empty placeholders; do not guess or invent a device. Only if a device is clearly visible, set deviceDetected to true and identify the device, estimate its specs, rate its visible condition, and write a short description (under 50 words) of the physical condition you can actually see in the photos. Only report damage (scratches, dents, cracked screen or glass, worn edges, missing parts) that is clearly and unambiguously visible — screen glare, reflections, smudges, and photo artefacts are not damage. If you are not certain a flaw is real, leave it out. A device with no visible flaws should get a description saying it looks clean with no visible damage; never invent or exaggerate wear to seem thorough. Do not include the release year."
 
 const previewSchema = {
   type: Type.OBJECT,
@@ -132,19 +131,11 @@ const previewSchema = {
       type: Type.STRING,
       description: 'Make and model, e.g. "iPhone 14 Pro". No year.',
     },
-    resaleValueAud: {
-      type: Type.OBJECT,
-      properties: {
-        low: { type: Type.NUMBER },
-        high: { type: Type.NUMBER },
-      },
-      required: ['low', 'high'],
-    },
     ramGb: { type: Type.NUMBER, description: 'Estimated RAM in GB' },
     storageGb: { type: Type.NUMBER, description: 'Estimated storage in GB' },
     condition: {
       type: Type.STRING,
-      enum: ['good', 'poor', 'excellent', 'new'] satisfies PhoneCondition[],
+      enum: ['damaged', 'poor', 'good', 'excellent', 'new'] satisfies PhoneCondition[],
     },
     description: {
       type: Type.STRING,
@@ -152,7 +143,7 @@ const previewSchema = {
         'Under 50 words. Visible physical condition details only (e.g. cracked screen, scratches, dents).',
     },
   },
-  required: ['deviceDetected', 'model', 'resaleValueAud', 'ramGb', 'storageGb', 'condition', 'description'],
+  required: ['deviceDetected', 'model', 'ramGb', 'storageGb', 'condition', 'description'],
 }
 
 app.post('/api/preview', deviceUpload, async (req, res) => {
@@ -190,6 +181,15 @@ app.post('/api/preview', deviceUpload, async (req, res) => {
       res.status(422).json({ error: "Couldn't find a device in that photo. Try again with it clearly in frame." })
       return
     }
+    // RAM and storage can't be read off exterior photos — only trust them
+    // when the About-screen photo was provided; otherwise the user fills
+    // them in. No resale estimate here either: battery health is never
+    // visible in photos, and the client only requests an estimate once
+    // RAM, storage and battery are all known.
+    if (!settings) {
+      delete preview.ramGb
+      delete preview.storageGb
+    }
     res.json(preview)
   } catch (err) {
     console.error(err)
@@ -207,29 +207,74 @@ const estimateSchema = {
   required: ['low', 'high'],
 }
 
+// Gemini 2.5 can't combine the googleSearch tool with responseSchema in one
+// request (Gemini 3-only preview feature), so grounding is a separate
+// plain-text call whose summary feeds the schema-constrained estimate call.
+const searchMarketContext = async (deviceFacts: string): Promise<string | null> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-lite',
+      contents: `Search for current used/second-hand prices in Australia for this device: ${deviceFacts}. Check channels like eBay Australia, Facebook Marketplace, Gumtree, CeX, and trade-in programs. Reply with at most 5 short bullet points of observed AUD prices (channel, price, storage/condition variant), 80 words total maximum. No introduction, prose, or caveats.`,
+      config: {
+        tools: [{ googleSearch: {} }],
+        thinkingConfig: { thinkingBudget: 0 },
+        maxOutputTokens: 300,
+      },
+    })
+    console.log('[market context]', response.text)
+    return response.text ?? null
+  } catch (err) {
+    console.error('Market search grounding failed, falling back to ungrounded estimate:', err)
+    return null
+  }
+}
+
+const estimateResale = async (
+  deviceFacts: string,
+  marketContext: string | null,
+): Promise<{ low: number; high: number }> => {
+  const prompt = `Estimate the current used resale value in Australian dollars (AUD), as a low–high range, for this device: ${deviceFacts}. A significantly degraded battery (well below 100%) should reduce the resale value even if the rest of the device is in good condition.${
+    marketContext
+      ? `\n\nCurrent Australian market data from Google Search:\n${marketContext}\n\nBase the range primarily on these observed prices rather than prior knowledge, adjusted for the device's specific condition and battery health.`
+      : ''
+  }`
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: prompt,
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: estimateSchema,
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+  })
+  return JSON.parse(response.text ?? '{}')
+}
+
 app.post('/api/estimate', async (req, res) => {
   const { model, ramGb, storageGb, batteryPct, condition } = req.body ?? {}
   const ram = Number(ramGb)
   const storage = Number(storageGb)
   const battery = Number(batteryPct)
 
-  if (typeof model !== 'string' || !model.trim() || !Number.isFinite(ram) || !Number.isFinite(storage)) {
-    res.status(400).json({ error: 'model (string), ramGb and storageGb (numbers) are required' })
+  if (
+    typeof model !== 'string' ||
+    !model.trim() ||
+    !Number.isFinite(ram) ||
+    !Number.isFinite(storage) ||
+    !Number.isFinite(battery)
+  ) {
+    res.status(400).json({
+      error: 'Not enough information for an estimate — model, RAM, storage and battery health are all required.',
+    })
     return
   }
 
-  const prompt = `Estimate the current used resale value in Australian dollars (AUD), as a low–high range, for this device: ${model.trim()}, ${ram} GB RAM, ${storage} GB storage${typeof condition === 'string' && condition ? `, in ${condition} condition` : ''}${Number.isFinite(battery) ? `, battery health at ${battery}% of original capacity` : ''}. A significantly degraded battery (well below 100%) should reduce the resale value even if the rest of the device is in good condition.`
+  const facts = `${model.trim()}, ${ram} GB RAM, ${storage} GB storage${typeof condition === 'string' && condition ? `, in ${condition} condition` : ''}, battery health at ${battery}% of original capacity`
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: estimateSchema,
-      },
-    })
-    res.json(JSON.parse(response.text ?? '{}'))
+    const marketContext = await searchMarketContext(facts)
+    res.json(await estimateResale(facts, marketContext))
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Gemini request failed' })

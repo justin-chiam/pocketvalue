@@ -3,8 +3,14 @@ import { Animated, Easing, StyleSheet, View } from 'react-native'
 import { CONDITIONS } from '../types'
 import { colors, radius } from '../theme'
 
+type Props = {
+  // Number of photo thumbnails to placeholder in the photo row — matches
+  // however many shots were actually taken (2 or 3), not a fixed guess.
+  photoCount?: number
+}
+
 // Skeleton mirroring the preview form's layout, pulsing while Gemini analyzes.
-export function FormSkeleton() {
+export function FormSkeleton({ photoCount = 3 }: Props) {
   const pulse = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
@@ -34,7 +40,14 @@ export function FormSkeleton() {
 
   return (
     <View>
-      {block({ width: 88, height: 88, borderRadius: radius.card, alignSelf: 'center', marginBottom: 8 })}
+      <View style={styles.photoGallery}>
+        {Array.from({ length: photoCount }, (_, i) => (
+          <View key={i} style={styles.photoCard}>
+            {block({ width: '100%', aspectRatio: 1, borderRadius: radius.card })}
+            {block({ width: '60%', height: 10, alignSelf: 'center' })}
+          </View>
+        ))}
+      </View>
       {block({ width: 48, height: 12, marginTop: 16 })}
       {block({ height: 42, marginTop: 6 })}
       <View style={styles.row}>
@@ -49,7 +62,7 @@ export function FormSkeleton() {
       </View>
       {block({ width: 72, height: 12, marginTop: 16 })}
       <View style={styles.pillRow}>
-        {CONDITIONS.map((c) => block({ width: 72, height: 34, borderRadius: radius.pill }, c))}
+        {CONDITIONS.map((c) => block({ flex: 1, height: 34, borderRadius: radius.pill }, c))}
       </View>
       {block({ width: 88, height: 12, marginTop: 16 })}
       {block({ height: 80, marginTop: 6 })}
@@ -63,6 +76,15 @@ const styles = StyleSheet.create({
   block: {
     backgroundColor: colors.line,
     borderRadius: radius.card,
+  },
+  photoGallery: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 4,
+  },
+  photoCard: {
+    flex: 1,
+    gap: 5,
   },
   row: {
     flexDirection: 'row',
