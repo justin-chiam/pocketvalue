@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
+  Alert,
   Animated,
   Dimensions,
   Easing,
@@ -15,6 +16,7 @@ import {
 } from 'react-native'
 import {
   ArrowsLeftRightIcon,
+  CaretLeftIcon,
   HandHeartIcon,
   RecycleIcon,
   TagIcon,
@@ -71,9 +73,43 @@ export function RecommendationScreen({ state, onBack, onStartOver, onRetry, form
     setPage(Math.round(e.nativeEvent.contentOffset.x / PAGE_WIDTH))
   }
 
+  const confirmStartOver = () => {
+    Alert.alert(
+      'Are you sure you want to start over?',
+      'Your captured photos and current recommendation will be cleared.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Start over', style: 'destructive', onPress: onStartOver },
+      ],
+    )
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>What should you do with it?</Text>
+      <View style={styles.header}>
+        <View style={styles.navRow}>
+          <TouchableOpacity
+            style={styles.back}
+            onPress={onBack}
+            activeOpacity={0.65}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <CaretLeftIcon size={22} weight="bold" color={colors.pine} />
+            <Text style={styles.backText}>Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.startOver}
+            onPress={confirmStartOver}
+            activeOpacity={0.75}
+            accessibilityRole="button"
+            accessibilityLabel="Start over"
+          >
+            <Text style={styles.startOverText}>Start over</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.title}>What should you do with it?</Text>
+      </View>
 
       {loading ? (
         <CardSkeleton />
@@ -171,11 +207,6 @@ export function RecommendationScreen({ state, onBack, onStartOver, onRetry, form
         </>
       ) : null}
 
-      <View style={styles.buttons}>
-        <AppButton label="Back" onPress={onBack} variant="secondary" />
-        <AppButton label="Start over" onPress={onStartOver} variant="secondary" />
-      </View>
-
       {data && (
         <Modal
           visible={expanded !== null}
@@ -261,8 +292,45 @@ const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.paper,
-    paddingTop: 84,
+    paddingTop: 56,
     paddingBottom: 48,
+  },
+  header: {
+    paddingHorizontal: 24,
+    marginBottom: 20,
+  },
+  navRow: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  back: {
+    minHeight: 44,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    marginLeft: -8,
+    paddingHorizontal: 8,
+  },
+  backText: {
+    color: colors.pine,
+    fontFamily: fonts.displayMedium,
+    fontSize: 17,
+  },
+  startOver: {
+    minHeight: 44,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.danger,
+    borderRadius: radius.pill,
+  },
+  startOverText: {
+    color: colors.ctaText,
+    fontFamily: fonts.displaySemiBold,
+    fontSize: 14,
   },
   title: {
     color: colors.ink,
@@ -270,8 +338,7 @@ const styles = StyleSheet.create({
     fontSize: 25,
     letterSpacing: -0.4,
     textAlign: 'left',
-    marginHorizontal: 24,
-    marginBottom: 20,
+    marginTop: 12,
   },
   page: {
     width: PAGE_WIDTH,
@@ -404,12 +471,6 @@ const styles = StyleSheet.create({
   },
   dotActive: {
     backgroundColor: colors.pine,
-  },
-  buttons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-    paddingTop: 20,
   },
   skeletonBlock: {
     backgroundColor: colors.line,
