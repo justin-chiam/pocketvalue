@@ -1,15 +1,13 @@
 # PocketValue design system
 
 Source of truth for brand, color, type, spacing, motion, and component patterns
-across `frontend`, `backend`-served pages, and `mobile`. This was extracted
-from the one surface that has a fully realized design: the web landing page
-(`frontend/src/pages/Landing.tsx` + `Landing.css`). Nothing here is
-aspirational — every token below is copied from shipping CSS.
+across the landing page and `mobile`. This was extracted from the fully
+realized web landing page (`frontend/src/pages/Landing.tsx` + `Landing.css`)
+and the synced mobile theme. Nothing here is aspirational — every token below
+is copied from shipping code.
 
-**Status:** the landing page (`/`) is the only surface currently on-brand.
-The web app tool (`/app`) and the mobile app both predate this design system
-and use different, unrelated palettes. See [Sync status](#sync-status) for
-what's out of sync and how to bring each surface into line.
+**Status:** the landing page (`/`) and mobile app are on-brand. There is no web
+app workflow. See [Sync status](#sync-status) for the current surface status.
 
 ## Brand
 
@@ -176,14 +174,13 @@ Patterns in use:
 | Surface | File(s) | Current state | Gap |
 |---|---|---|---|
 | **Landing page** (`/`) | `frontend/src/pages/Landing.tsx`, `Landing.css` | ✅ Fully on-brand — source of truth for everything above | — |
-| **Web app tool** (`/app`) | `frontend/src/pages/AppPage.tsx`, `AppPage.css` | ❌ Unstyled placeholder (Gemini chat demo). Uses `index.css` root tokens: `--accent: #aa3bff` (purple), system-ui font, generic rounded cards | Needs a full rebuild on the tokens above once the real photo → assessment → recommendation flow is designed for web. Don't keep the purple `--accent` — it predates the brand and reads as a totally different product |
-| **Root shell** | `frontend/src/index.css` | Legacy Vite template tokens (`--accent`, `--code-bg`, `--social-bg`, purple in both light and dark mode) still power `#root` and `AppPage` | Once `/app` is rebuilt, these can be deleted; nothing on-brand should reference them |
+| **Root shell** | `frontend/src/index.css` | Legacy Vite template tokens remain for the landing-page root shell | Remove unused legacy tokens when the landing page CSS is next consolidated |
 | **Mobile app** | `mobile/src/screens/*.tsx`, `mobile/src/components/*.tsx`, `mobile/src/theme.ts` | ✅ Synced to the light paper/ink/pine system with Bricolage Grotesque, IBM Plex Mono, Phosphor icons, outlined cards, and pill CTAs | The live camera and captured-photo viewers intentionally remain dark viewports; all interface chrome uses brand tokens |
 
-### Bringing mobile in line
+### Mobile alignment
 
-Mobile currently reads as a generic iOS dark-mode utility, not PocketValue.
-To sync it with the brand:
+Mobile is already aligned with the brand. Keep the following decisions intact
+when extending it:
 
 1. **Accent:** completed. Pine `#1c5b45` is the sole mobile accent.
 2. **Theme:** completed. Mobile uses the light brand theme for app surfaces.

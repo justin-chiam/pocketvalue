@@ -1,11 +1,11 @@
 # hackathon
 
-Monorepo with separate `backend`, `frontend`, and `mobile` apps, no shared root package.json. Run commands from within each subdirectory.
+Monorepo with separate `backend`, `frontend`, and `mobile` apps, no shared root package.json. The frontend is a landing page only; the product workflow is mobile-only. Run commands from within each subdirectory.
 
 ## Stack
 
 - **backend**: Node.js (ESM), TypeScript (run with `tsx`, no build step), Express 5, Google Gemini via `@google/genai` through Vertex AI, `dotenv`, `cors`, `multer`. Entry point `backend/index.ts`.
-- **frontend**: React 19 + Vite, plain JS (`.jsx`, not TypeScript), `react-router-dom` for client-side routing.
+- **frontend**: React 19 + Vite, TypeScript/TSX landing page only.
 - **mobile**: Expo SDK 54 (React Native), TypeScript, `expo-camera`. Entry point `mobile/App.tsx` (thin composition root); code lives in `mobile/src/` split into `screens/` (ScanScreen, PreviewSheet, RecommendationScreen), `components/`, `hooks/` (`usePhotoCapture`, `usePreviewForm`, `useRecommendation`), `api.ts`, and `types.ts`.
 
 ## Commands
@@ -16,7 +16,7 @@ Backend (from `backend/`):
 - `npm run typecheck` — tsc --noEmit
 - `npm run lint` — ESLint
 
-Frontend (from `frontend/`):
+Frontend landing page (from `frontend/`):
 - `npm run dev` — Vite dev server
 - `npm run build` — `tsc -b` then Vite production build
 - `npm run typecheck` — `tsc -b`
@@ -56,22 +56,20 @@ Note: Vertex AI was renamed "Gemini Enterprise Agent Platform" in the GCP consol
 
 ## Frontend routes
 
-`frontend/src/App.tsx` defines two routes via `react-router-dom`:
+`frontend/src/App.tsx` defines one route via `react-router-dom`:
 - `/` — `frontend/src/pages/Landing.tsx`, the marketing/pitch page (hero, "how it works", "Try it" CTA).
-- `/app` — `frontend/src/pages/AppPage.tsx`, the actual tool.
 
-Landing and app are kept as distinct pages/components/files in the same build and deploy — not separate directories or deployments.
+The landing page is the only frontend page in the build and deploy. The
+device workflow is implemented in the mobile app.
 
 ## Design system
 
 `DESIGN.md` at the repo root documents the brand's colors, typography,
 spacing, motion, and component patterns, extracted from the landing page
-(`frontend/src/pages/Landing.tsx` + `Landing.css`), which is currently the
-only on-brand surface. It also tracks which surfaces (`/app`, `mobile`) are
-still out of sync and what needs to change to bring them in line. Consult it
-before styling any new UI so surfaces stay visually consistent, and update it
-if the design system itself changes.
+(`frontend/src/pages/Landing.tsx` + `Landing.css`) and the mobile theme.
+Consult it before styling any new UI so surfaces stay visually consistent,
+and update it if the design system itself changes.
 
 ## Status
 
-`backend/index.ts` exposes `GET /api/health` plus four Gemini-backed POST routes, all returning schema-constrained JSON in AUD: `/api/device` (legacy two-photo appraisal), `/api/preview` (photos → model/RAM/storage/condition/description/resale range), `/api/estimate` (edited form fields → recalculated resale range), and `/api/recommend` (form fields → fix/sell/tradeIn/donate/recycle blurbs + one recommended pick). `frontend` has a landing page and an app page wired up as described above; `AppPage.jsx` currently reuses an old Gemini chat example as a placeholder. `mobile` implements the full flow: scan (front/back + optional About-screen photo, confirm/retake) → preview sheet (skeleton while analyzing, auto-filled editable form, debounced re-estimation) → recommendation view (five swipeable cards, AI pick badged).
+`backend/index.ts` exposes `GET /api/health` plus four Gemini-backed POST routes, all returning schema-constrained JSON in AUD: `/api/device` (legacy two-photo appraisal), `/api/preview` (photos → model/RAM/storage/condition/description/resale range), `/api/estimate` (edited form fields → recalculated resale range), and `/api/recommend` (form fields → fix/sell/tradeIn/donate/recycle blurbs + one recommended pick). `frontend` contains only the landing page. `mobile` implements the full flow: scan (front/back + optional About-screen photo, confirm/retake) → preview sheet (skeleton while analyzing, auto-filled editable form, debounced re-estimation) → recommendation view (five swipeable cards, AI pick badged).
