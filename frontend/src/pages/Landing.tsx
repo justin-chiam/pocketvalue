@@ -1,7 +1,12 @@
 import { Link } from 'react-router-dom'
 import './Landing.css'
 
-const STEPS = [
+interface Step {
+  title: string
+  body: string
+}
+
+const STEPS: Step[] = [
   {
     title: 'Snap a photo',
     body: 'Point your camera at the device you want to understand.',
