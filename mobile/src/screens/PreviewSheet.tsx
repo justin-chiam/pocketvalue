@@ -12,7 +12,7 @@ import {
   type GestureResponderEvent,
 } from 'react-native'
 import { InfoIcon } from 'phosphor-react-native'
-import { AppButton } from '../components/AppButton'
+import { AppButton, DisabledAppButton } from '../components/AppButton'
 import { BottomSheet } from '../components/BottomSheet'
 import { FormSkeleton } from '../components/FormSkeleton'
 import type { PreviewFormState } from '../hooks/usePreviewForm'
@@ -143,6 +143,9 @@ export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }
     }
     onContinue()
   }
+
+  const formIsValid = form !== null && isFormValid(form)
+  const hasEstimation = form?.resaleLow !== '' && form?.resaleHigh !== ''
 
   return (
     <BottomSheet>
@@ -356,7 +359,13 @@ export function PreviewSheet({ state, photos, onStartOver, onRetry, onContinue }
           </ScrollView>
           <View style={styles.buttons}>
             <AppButton label="Start over" onPress={onStartOver} variant="secondary" />
-            <AppButton label="Continue" onPress={continueWithValidation} />
+            {!formIsValid ? (
+              <DisabledAppButton label="Continue" disabled={false} onPress={continueWithValidation} />
+            ) : estimating || !hasEstimation ? (
+              <DisabledAppButton label="Estimating" disabled={true} onPress={() => {}} />
+            ) : (
+              <AppButton label="Continue" onPress={continueWithValidation} />
+            )}
           </View>
         </>
       ) : null}
