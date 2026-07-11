@@ -173,6 +173,9 @@
 
 .landing h1 em {
   font-style: italic;
+  /* Bricolage Grotesque has no italic axis and index.css disables
+     font-synthesis globally; re-enable it so this word actually slants. */
+  font-synthesis: style;
   color: var(--pine);
   line-height: 1.1;
   padding-bottom: 0.06em;
