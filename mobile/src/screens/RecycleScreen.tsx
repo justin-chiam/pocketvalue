@@ -10,7 +10,7 @@ import {
 } from 'react-native'
 import * as Location from 'expo-location'
 import { ArrowSquareOutIcon, HandHeartIcon, MapPinIcon } from 'phosphor-react-native'
-import { requestDonateLocations, type DonateLocation } from '../api'
+import { requestRecyclingLocations, type DonateLocation } from '../api'
 import { RecommendationDetail } from '../components/RecommendationDetail'
 import { colors, fonts, radius } from '../theme'
 
@@ -42,7 +42,7 @@ export function RecycleScreen({ blurb, model, onClose }: Props) {
       const locationText =
         [place?.district, place?.city, place?.region, place?.country].filter(Boolean).join(', ') ||
         `${position.coords.latitude}, ${position.coords.longitude}`
-      const data = await requestDonateLocations({
+      const data = await requestRecyclingLocations({
         model: model.trim() || 'tech device',
         location: locationText,
       })

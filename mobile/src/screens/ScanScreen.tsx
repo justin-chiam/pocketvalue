@@ -1,6 +1,6 @@
 import { useCallback, useState, type ComponentType, type RefAttributes } from 'react'
 import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { CameraView, useCameraPermissions, type CameraViewProps } from 'expo-camera'
+import { CameraType, CameraView, useCameraPermissions, type CameraViewProps } from 'expo-camera'
 import { CameraIcon, CheckIcon, XIcon } from 'phosphor-react-native'
 import { AppButton } from '../components/AppButton'
 import type { PhotoCapture } from '../hooks/usePhotoCapture'
@@ -26,6 +26,7 @@ type Props = {
 // The scan view: camera preview, shutter, per-shot confirmation,
 // thumbnail previews with view/retake, and the Done button.
 export function ScanScreen({ capture, onDone }: Props) {
+  const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions()
   const [selectedLens, setSelectedLens] = useState<string | undefined>()
   const {
@@ -104,12 +105,16 @@ export function ScanScreen({ capture, onDone }: Props) {
     )
   }
 
+  const toggleCameraFacing = () => {
+    setFacing(current => (current === 'back' ? 'front' : 'back'));
+  }
+
   return (
     <View style={styles.container}>
       <RefCameraView
         ref={cameraRef}
         style={styles.camera}
-        facing="back"
+        facing={facing}
         zoom={Platform.OS === 'android' ? 0 : undefined}
         selectedLens={selectedLens}
         onCameraReady={selectNormalRearLens}
@@ -139,6 +144,9 @@ export function ScanScreen({ capture, onDone }: Props) {
           </View>
         ) : null}
         <View style={styles.shutterRow}>
+          <TouchableOpacity onPress={toggleCameraFacing}>
+            <Text>Flip Camera</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.shutterButton, !canShoot && styles.shutterDisabled]}
             onPress={takePicture}
