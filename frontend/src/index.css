@@ -50,8 +50,13 @@
   }
 }
 
+html {
+  overscroll-behavior-y: none;
+}
+
 body {
   margin: 0;
+  overscroll-behavior-y: none;
 }
 
 #root {
