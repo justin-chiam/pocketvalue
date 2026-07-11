@@ -21,17 +21,17 @@ const CHAPTERS = [
     num: '01',
     title: 'Point it at anything.',
     sub: 'The camera is the whole interface.',
-    body: 'No model numbers, no dropdowns, no forms. If you can photograph it, PocketValue can assess it.',
+    body: "You don't have to look up a model number or fill in a form. If you can photograph it, PocketValue can assess it.",
   },
   {
     num: '02',
     title: 'Get the full read.',
-    sub: 'Model, condition, value. In seconds.',
+    sub: 'It reads the model, condition, and value in a few seconds.',
     body: 'It identifies the exact device, grades condition from the photo, and prices it against the real market.',
   },
   {
     num: '03',
-    title: 'See every route, priced.',
+    title: 'See what each route is worth.',
     sub: 'Repair, resell, trade in, donate, recycle. Side by side.',
     body: 'Each path gets a number for your exact device, so the decision makes itself.',
   },
@@ -39,7 +39,7 @@ const CHAPTERS = [
     num: '04',
     title: 'Walk away with a plan.',
     sub: 'One verdict, clear next steps.',
-    body: 'Not a listing, not a quote. A recommendation you can act on today. Even when that means keeping it.',
+    body: 'You get a decision you can act on today, not just a price tag. Sometimes that decision is to keep the device.',
   },
 ]
 
@@ -47,27 +47,27 @@ const OUTCOMES = [
   {
     icon: Wrench,
     title: 'Repair',
-    body: 'A new battery beats a new phone. Small fixes buy years.',
+    body: 'Often a cheap part is the only thing wrong. Replace it and the device is good for years.',
   },
   {
     icon: Tag,
     title: 'Resell',
-    body: 'Still works? Someone wants it, and it is worth more than you think.',
+    body: "If it still works, there's a buyer for it, usually at a higher price than you'd guess.",
   },
   {
     icon: ArrowsLeftRight,
     title: 'Trade in',
-    body: 'Put its value toward the next one. We check the offer is actually fair.',
+    body: 'Put its value toward your next device. We check that the offer is actually fair.',
   },
   {
     icon: HandHeart,
     title: 'Donate',
-    body: 'A slow laptop for you is a first laptop for someone else.',
+    body: 'The laptop that feels slow to you can be a good first computer for someone who has none.',
   },
   {
     icon: Recycle,
     title: 'Recycle',
-    body: 'Truly done? Its metals and minerals are not. Recover them properly.',
+    body: "When a device really is finished, the metals inside it aren't. Recycling gets them back.",
   },
 ]
 
@@ -75,7 +75,7 @@ const CONTRASTS = [
   {
     claim: 'Any brand, any device',
     them: 'Trade-in programs only see their own products.',
-    us: 'If it has a shape, we can read it. Ten-year-old laptops included.',
+    us: 'If you can photograph it, we can assess it, including laptops from ten years ago.',
   },
   {
     claim: 'Every route, compared',
@@ -85,7 +85,7 @@ const CONTRASTS = [
   {
     claim: 'Advice, not a funnel',
     them: 'Marketplaces want a listing. Trade-ins want you upgrading.',
-    us: 'We are happiest when the answer is: keep it. That is the whole point.',
+    us: "Sometimes the right answer is to keep what you have, and we'll say so when it is.",
   },
 ]
 
@@ -251,7 +251,7 @@ function Iphone({ active }: { active: number }) {
   )
 }
 
-function Landing() {
+function LandingDraft() {
   useReveal()
   const active = useActiveChapter()
 
@@ -269,14 +269,14 @@ function Landing() {
       <section className="hero">
         <div className="hero-copy">
           <h1>
-            Your old tech isn't dead.
+            Your old tech is still worth something.
             <br />
-            It's <em>undecided.</em>
+            You just haven't <em>decided</em> what to do with it.
           </h1>
           <p className="hero-sub">
-            Photograph any device. AI identifies it, grades its condition, and
-            finds your old tech a new home: repair, resell, trade in, donate,
-            or recycle.
+            Photograph any device. It identifies the model, grades the
+            condition, and tells you the best thing to do with it: repair,
+            resell, trade in, donate, or recycle.
           </p>
           <div className="hero-actions">
             <a href="#how" className="cta">
@@ -317,7 +317,8 @@ function Landing() {
           <div className="ticket-verdict">
             <span className="stamp">Keep it</span>
             <p>
-              Best route: <strong>repair</strong>. A $49 battery gets you two more years. You don't need a new phone.
+              Best route: <strong>repair</strong>. A $49 battery gets you two
+              more good years. You don't need a new phone.
             </p>
           </div>
         </aside>
@@ -357,7 +358,7 @@ function Landing() {
       </section>
 
       <section className="story-intro" id="how">
-        <h2 data-reveal>Three photos do the work.</h2>
+        <h2 data-reveal>Three photos are all it takes.</h2>
       </section>
 
       <section className="story">
@@ -380,10 +381,10 @@ function Landing() {
 
       <section className="outcomes">
         <div className="container">
-          <h2 data-reveal>Five actions you can take.</h2>
+          <h2 data-reveal>Five things you can do with it.</h2>
           <p className="section-sub" data-reveal>
             We rank every route for your exact device and tell you which one
-            wins, and why.
+            comes out ahead, and why.
           </p>
           <div className="outcome-grid">
             {OUTCOMES.map((o, i) => (
@@ -424,7 +425,7 @@ function Landing() {
 
       <section className="closing" data-reveal>
         <Camera size={40} weight="light" aria-hidden="true" />
-        <h2>Open the drawer. Point the camera.</h2>
+        <h2>Point your camera at that old device and find out what it's worth.</h2>
         <a href="#how" className="cta">
           Try it
           <ArrowRight weight="bold" aria-hidden="true" />
@@ -439,4 +440,4 @@ function Landing() {
   )
 }
 
-export default Landing
+export default LandingDraft
