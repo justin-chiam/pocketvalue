@@ -13,6 +13,7 @@ import { BottomSheet } from '../components/BottomSheet'
 import { FormSkeleton } from '../components/FormSkeleton'
 import type { PreviewFormState } from '../hooks/usePreviewForm'
 import { CONDITIONS } from '../types'
+import { colors, fonts, radius } from '../theme'
 
 type Props = {
   state: PreviewFormState
@@ -37,11 +38,12 @@ export function PreviewSheet({ state, frontPhotoUri, onStartOver, onRetry, onCon
           <Text style={styles.errorText}>{error}</Text>
           <View style={styles.buttons}>
             <AppButton label="Try again" onPress={onRetry} />
-            <AppButton label="Start over" onPress={onStartOver} />
+            <AppButton label="Start over" onPress={onStartOver} variant="secondary" />
           </View>
         </View>
       ) : form !== null ? (
         <>
+          <Text style={styles.sheetTitle}>Device report</Text>
           <ScrollView contentContainerStyle={styles.scroll}>
             {frontPhotoUri && <Image source={{ uri: frontPhotoUri }} style={styles.thumb} />}
 
@@ -110,11 +112,11 @@ export function PreviewSheet({ state, frontPhotoUri, onStartOver, onRetry, onCon
               <Text style={styles.resaleValue}>
                 ${form.resaleLow} – ${form.resaleHigh}
               </Text>
-              {estimating && <ActivityIndicator size="small" color="#999" />}
+              {estimating && <ActivityIndicator size="small" color={colors.pine} />}
             </View>
           </ScrollView>
           <View style={styles.buttons}>
-            <AppButton label="Start over" onPress={onStartOver} />
+            <AppButton label="Start over" onPress={onStartOver} variant="secondary" />
             <AppButton label="Continue" onPress={onContinue} />
           </View>
         </>
@@ -125,30 +127,43 @@ export function PreviewSheet({ state, frontPhotoUri, onStartOver, onRetry, onCon
 
 const styles = StyleSheet.create({
   scroll: {
-    paddingBottom: 8,
+    paddingBottom: 12,
+  },
+  sheetTitle: {
+    color: colors.ink,
+    fontFamily: fonts.displaySemiBold,
+    fontSize: 26,
+    letterSpacing: -0.4,
+    marginTop: 8,
+    marginBottom: 8,
   },
   thumb: {
     width: 88,
     height: 88,
-    borderRadius: 12,
+    borderRadius: radius.card,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.line,
     alignSelf: 'center',
     marginBottom: 8,
   },
   fieldLabel: {
-    color: '#999',
-    fontSize: 13,
-    marginTop: 16,
-    marginBottom: 6,
+    color: colors.muted,
+    fontFamily: fonts.monoMedium,
+    fontSize: 11,
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+    marginTop: 18,
+    marginBottom: 8,
   },
   input: {
-    backgroundColor: '#2c2c2e',
-    color: '#fff',
+    backgroundColor: colors.surface,
+    color: colors.ink,
     fontSize: 16,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.line,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   rowInputs: {
     flexDirection: 'row',
@@ -163,21 +178,26 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pill: {
+    minHeight: 42,
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 16,
-    backgroundColor: '#2c2c2e',
+    paddingVertical: 10,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+    justifyContent: 'center',
   },
   pillSelected: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.pine,
+    borderColor: colors.pine,
   },
   pillText: {
-    color: '#fff',
+    color: colors.body,
+    fontFamily: fonts.displayMedium,
     fontSize: 14,
   },
   pillTextSelected: {
-    color: '#000',
-    fontWeight: '600',
+    color: colors.ctaText,
   },
   descriptionInput: {
     minHeight: 80,
@@ -189,18 +209,18 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   resaleValue: {
-    color: '#fff',
+    color: colors.ink,
+    fontFamily: fonts.monoMedium,
     fontSize: 24,
-    fontWeight: '700',
   },
   errorTitle: {
-    color: '#fff',
+    color: colors.ink,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 22,
-    fontWeight: '700',
     marginBottom: 16,
   },
   errorText: {
-    color: '#fff',
+    color: colors.body,
     fontSize: 16,
     lineHeight: 24,
   },
@@ -209,5 +229,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 16,
     paddingTop: 20,
+    paddingBottom: 4,
   },
 })

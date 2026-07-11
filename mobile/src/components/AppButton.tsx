@@ -1,22 +1,46 @@
 import { StyleSheet, Text, TouchableOpacity } from 'react-native'
+import { colors, fonts, radius } from '../theme'
 
-export function AppButton({ label, onPress }: { label: string; onPress: () => void }) {
+type Props = {
+  label: string
+  onPress: () => void
+  variant?: 'primary' | 'secondary'
+}
+
+export function AppButton({ label, onPress, variant = 'primary' }: Props) {
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Text style={styles.label}>{label}</Text>
+    <TouchableOpacity
+      style={[styles.button, variant === 'secondary' && styles.buttonSecondary]}
+      onPress={onPress}
+      activeOpacity={0.78}
+      accessibilityRole="button"
+    >
+      <Text style={[styles.label, variant === 'secondary' && styles.labelSecondary]}>{label}</Text>
     </TouchableOpacity>
   )
 }
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
+    minHeight: 48,
+    backgroundColor: colors.pine,
+    paddingHorizontal: 24,
+    paddingVertical: 13,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonSecondary: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
   },
   label: {
+    color: colors.ctaText,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 16,
-    fontWeight: '600',
+  },
+  labelSecondary: {
+    color: colors.ink,
   },
 })

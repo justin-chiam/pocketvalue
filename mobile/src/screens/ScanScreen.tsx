@@ -1,8 +1,22 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { CameraView, useCameraPermissions } from 'expo-camera'
+import { useCallback, useState, type ComponentType, type RefAttributes } from 'react'
+import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { CameraView, useCameraPermissions, type CameraViewProps } from 'expo-camera'
+import { CameraIcon, CheckIcon, XIcon } from 'phosphor-react-native'
 import { AppButton } from '../components/AppButton'
 import type { PhotoCapture } from '../hooks/usePhotoCapture'
 import { SLOT_LABELS, type Slot } from '../types'
+import { colors, fonts, radius } from '../theme'
+
+// Some editor TypeScript services omit React's special JSX ref attributes for
+// class-based native components. Keep the runtime component unchanged while
+// making its supported instance ref explicit to those services.
+const RefCameraView = CameraView as unknown as ComponentType<
+  CameraViewProps & RefAttributes<CameraView>
+>
+
+// Apple's "wide angle" camera is the standard 1x rear lens. The similarly
+// named "ultra wide" camera is the 0.5x lens and must not be selected here.
+const NORMAL_REAR_LENS = 'builtInWideAngleCamera'
 
 type Props = {
   capture: PhotoCapture
@@ -13,6 +27,7 @@ type Props = {
 // thumbnail previews with view/retake, and the Done button.
 export function ScanScreen({ capture, onDone }: Props) {
   const [permission, requestPermission] = useCameraPermissions()
+  const [selectedLens, setSelectedLens] = useState<string | undefined>()
   const {
     cameraRef,
     photos,
@@ -29,14 +44,25 @@ export function ScanScreen({ capture, onDone }: Props) {
     startRetake,
   } = capture
 
+  const selectNormalRearLens = useCallback(async () => {
+    if (Platform.OS !== 'ios') return
+
+    const availableLenses = await cameraRef.current?.getAvailableLensesAsync()
+    if (availableLenses?.includes(NORMAL_REAR_LENS)) {
+      setSelectedLens(NORMAL_REAR_LENS)
+    }
+  }, [cameraRef])
+
   if (!permission) {
-    return <View style={styles.container} />
+    return <View style={styles.permissionContainer} />
   }
 
   if (!permission.granted) {
     return (
-      <View style={[styles.container, styles.centered]}>
-        <Text style={styles.message}>We need camera access to photograph your device</Text>
+      <View style={[styles.permissionContainer, styles.centered]}>
+        <CameraIcon size={38} weight="light" color={colors.pine} />
+        <Text style={styles.permissionTitle}>Camera access</Text>
+        <Text style={styles.message}>PocketValue needs the camera to identify your device.</Text>
         <AppButton label="Grant permission" onPress={requestPermission} />
       </View>
     )
@@ -50,10 +76,10 @@ export function ScanScreen({ capture, onDone }: Props) {
         <Text style={styles.slotLabel}>{SLOT_LABELS[targetSlot]}</Text>
         <View style={styles.confirmControls}>
           <TouchableOpacity style={styles.roundButton} onPress={discardPhoto}>
-            <Text style={styles.roundButtonText}>✕</Text>
+            <XIcon size={26} weight="bold" color={colors.ink} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.roundButton, styles.acceptButton]} onPress={confirmPhoto}>
-            <Text style={styles.roundButtonText}>✓</Text>
+            <CheckIcon size={26} weight="bold" color={colors.ctaText} />
           </TouchableOpacity>
         </View>
       </View>
@@ -68,7 +94,7 @@ export function ScanScreen({ capture, onDone }: Props) {
         <Text style={styles.slotLabel}>{SLOT_LABELS[viewingSlot]}</Text>
         <View style={styles.confirmControls}>
           <TouchableOpacity style={styles.roundButton} onPress={() => setViewingSlot(null)}>
-            <Text style={styles.roundButtonText}>✕</Text>
+            <XIcon size={26} weight="bold" color={colors.ink} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.retakeButton} onPress={() => startRetake(viewingSlot)}>
             <Text style={styles.retakeButtonText}>Retake</Text>
@@ -80,7 +106,14 @@ export function ScanScreen({ capture, onDone }: Props) {
 
   return (
     <View style={styles.container}>
-      <CameraView ref={cameraRef} style={styles.camera} facing="back" />
+      <RefCameraView
+        ref={cameraRef}
+        style={styles.camera}
+        facing="back"
+        zoom={Platform.OS === 'android' ? 0 : undefined}
+        selectedLens={selectedLens}
+        onCameraReady={selectNormalRearLens}
+      />
       <View style={styles.controls}>
         {canShoot && (
           <Text style={styles.hint}>
@@ -108,6 +141,9 @@ export function ScanScreen({ capture, onDone }: Props) {
             style={[styles.shutterButton, !canShoot && styles.shutterDisabled]}
             onPress={takePicture}
             disabled={!canShoot}
+            activeOpacity={0.72}
+            accessibilityRole="button"
+            accessibilityLabel="Take photo"
           >
             <View style={styles.shutterInner} />
           </TouchableOpacity>
@@ -125,7 +161,11 @@ export function ScanScreen({ capture, onDone }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: colors.ink,
+  },
+  permissionContainer: {
+    flex: 1,
+    backgroundColor: colors.paper,
   },
   centered: {
     justifyContent: 'center',
@@ -134,9 +174,18 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   message: {
-    color: '#fff',
+    color: colors.body,
     fontSize: 16,
+    lineHeight: 25,
     textAlign: 'center',
+    maxWidth: 300,
+    marginBottom: 8,
+  },
+  permissionTitle: {
+    color: colors.ink,
+    fontFamily: fonts.displaySemiBold,
+    fontSize: 30,
+    letterSpacing: -0.6,
   },
   camera: {
     flex: 1,
@@ -149,11 +198,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   hint: {
-    color: '#fff',
-    fontSize: 15,
-    marginBottom: 12,
-    textShadowColor: 'rgba(0,0,0,0.6)',
-    textShadowRadius: 4,
+    color: colors.ctaText,
+    backgroundColor: colors.cameraOverlay,
+    fontFamily: fonts.displayMedium,
+    fontSize: 14,
+    marginBottom: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: radius.pill,
+    overflow: 'hidden',
   },
   previewRow: {
     flexDirection: 'row',
@@ -162,11 +215,11 @@ const styles = StyleSheet.create({
     minHeight: 40,
   },
   previewBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 6,
+    width: 44,
+    height: 44,
+    borderRadius: radius.card,
     borderWidth: 1,
-    borderColor: '#fff',
+    borderColor: colors.ctaText,
   },
   shutterRow: {
     alignSelf: 'stretch',
@@ -178,8 +231,9 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    borderWidth: 4,
-    borderColor: '#fff',
+    borderWidth: 3,
+    borderColor: colors.ctaText,
+    backgroundColor: colors.pineOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -190,20 +244,23 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#fff',
+    backgroundColor: colors.pine,
+    borderWidth: 1,
+    borderColor: colors.pineBody,
   },
   doneButton: {
     position: 'absolute',
     left: '50%',
     marginLeft: 60,
-    backgroundColor: '#fff',
+    backgroundColor: colors.pine,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    borderRadius: 24,
+    borderRadius: radius.pill,
   },
   doneButtonText: {
+    color: colors.ctaText,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 16,
-    fontWeight: '600',
   },
   fullImage: {
     flex: 1,
@@ -213,10 +270,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 64,
     alignSelf: 'center',
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '600',
-    textShadowColor: 'rgba(0,0,0,0.6)',
+    color: colors.ctaText,
+    backgroundColor: colors.cameraOverlay,
+    fontFamily: fonts.monoMedium,
+    fontSize: 12,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    overflow: 'hidden',
+    textShadowColor: colors.cameraShadow,
     textShadowRadius: 4,
   },
   confirmControls: {
@@ -231,26 +295,23 @@ const styles = StyleSheet.create({
   roundButton: {
     width: 64,
     height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   acceptButton: {
-    backgroundColor: '#34c759',
-  },
-  roundButtonText: {
-    color: '#fff',
-    fontSize: 28,
+    backgroundColor: colors.pine,
   },
   retakeButton: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.pine,
     paddingHorizontal: 24,
     justifyContent: 'center',
-    borderRadius: 32,
+    borderRadius: radius.pill,
   },
   retakeButtonText: {
+    color: colors.ctaText,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 16,
-    fontWeight: '600',
   },
 })

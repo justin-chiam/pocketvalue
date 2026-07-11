@@ -1,0 +1,18 @@
+[
+  {
+    "device": "iPad Pro",
+    "trade_in_up_to": 1025
+  },
+  {
+    "device": "iPad Air",
+    "trade_in_up_to": 780
+  },
+  {
+    "device": "iPad",
+    "trade_in_up_to": 420
+  },
+  {
+    "device": "iPad mini",
+    "trade_in_up_to": 375
+  }
+]

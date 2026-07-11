@@ -1,0 +1,130 @@
+[
+  {
+    "device": "iPhone 16 Pro Max",
+    "trade_in_up_to": 1125
+  },
+  {
+    "device": "iPhone 16 Pro",
+    "trade_in_up_to": 960
+  },
+  {
+    "device": "iPhone 16 Plus",
+    "trade_in_up_to": 695
+  },
+  {
+    "device": "iPhone 16",
+    "trade_in_up_to": 720
+  },
+  {
+    "device": "iPhone 16e",
+    "trade_in_up_to": 545
+  },
+  {
+    "device": "iPhone 15 Pro Max",
+    "trade_in_up_to": 865
+  },
+  {
+    "device": "iPhone 15 Pro",
+    "trade_in_up_to": 735
+  },
+  {
+    "device": "iPhone 15 Plus",
+    "trade_in_up_to": 570
+  },
+  {
+    "device": "iPhone 15",
+    "trade_in_up_to": 560
+  },
+  {
+    "device": "iPhone 14 Pro Max",
+    "trade_in_up_to": 670
+  },
+  {
+    "device": "iPhone 14 Pro",
+    "trade_in_up_to": 580
+  },
+  {
+    "device": "iPhone 14 Plus",
+    "trade_in_up_to": 385
+  },
+  {
+    "device": "iPhone 14",
+    "trade_in_up_to": 375
+  },
+  {
+    "device": "iPhone SE (3rd generation)",
+    "trade_in_up_to": 130
+  },
+  {
+    "device": "iPhone 13 Pro Max",
+    "trade_in_up_to": 470
+  },
+  {
+    "device": "iPhone 13 Pro",
+    "trade_in_up_to": 405
+  },
+  {
+    "device": "iPhone 13",
+    "trade_in_up_to": 315
+  },
+  {
+    "device": "iPhone 13 mini",
+    "trade_in_up_to": 230
+  },
+  {
+    "device": "iPhone 12 Pro Max",
+    "trade_in_up_to": 345
+  },
+  {
+    "device": "iPhone 12 Pro",
+    "trade_in_up_to": 255
+  },
+  {
+    "device": "iPhone 12",
+    "trade_in_up_to": 195
+  },
+  {
+    "device": "iPhone 12 mini",
+    "trade_in_up_to": 130
+  },
+  {
+    "device": "iPhone SE (2nd generation)",
+    "trade_in_up_to": 75
+  },
+  {
+    "device": "iPhone 11 Pro Max",
+    "trade_in_up_to": 215
+  },
+  {
+    "device": "iPhone 11 Pro",
+    "trade_in_up_to": 195
+  },
+  {
+    "device": "iPhone 11",
+    "trade_in_up_to": 170
+  },
+  {
+    "device": "iPhone XS Max",
+    "trade_in_up_to": 140
+  },
+  {
+    "device": "iPhone XS",
+    "trade_in_up_to": 110
+  },
+  {
+    "device": "iPhone XR",
+    "trade_in_up_to": 125
+  },
+  {
+    "device": "iPhone X",
+    "trade_in_up_to": 75
+  },
+  {
+    "device": "iPhone 8 Plus",
+    "trade_in_up_to": 75
+  },
+  {
+    "device": "iPhone 8",
+    "trade_in_up_to": 65
+  }
+]
