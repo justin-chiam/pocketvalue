@@ -1,7 +1,7 @@
 import { useCallback, useState, type ComponentType, type RefAttributes } from 'react'
 import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { CameraType, CameraView, useCameraPermissions, type CameraViewProps } from 'expo-camera'
-import { CameraIcon, CheckIcon, XIcon } from 'phosphor-react-native'
+import { ArrowsClockwiseIcon, CameraIcon, CheckIcon, XIcon } from 'phosphor-react-native'
 import { AppButton } from '../components/AppButton'
 import type { PhotoCapture } from '../hooks/usePhotoCapture'
 import { SLOT_LABELS, type Slot } from '../types'
@@ -144,8 +144,13 @@ export function ScanScreen({ capture, onDone }: Props) {
           </View>
         ) : null}
         <View style={styles.shutterRow}>
-          <TouchableOpacity onPress={toggleCameraFacing}>
-            <Text>Flip Camera</Text>
+          <TouchableOpacity
+            style={styles.flipButton}
+            onPress={toggleCameraFacing}
+            accessibilityRole="button"
+            accessibilityLabel="Flip camera"
+          >
+            <ArrowsClockwiseIcon size={26} weight="bold" color={colors.ctaText} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.shutterButton, !canShoot && styles.shutterDisabled]}
@@ -238,6 +243,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  flipButton: {
+    position: 'absolute',
+    left: 28,
+    width: 52,
+    height: 52,
+    borderRadius: radius.pill,
+    backgroundColor: colors.cameraOverlay,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   shutterButton: {
     width: 72,
     height: 72,
@@ -259,8 +274,7 @@ const styles = StyleSheet.create({
   },
   doneButton: {
     position: 'absolute',
-    left: '50%',
-    marginLeft: 60,
+    right: 28,
     backgroundColor: colors.pine,
     paddingHorizontal: 20,
     paddingVertical: 12,
