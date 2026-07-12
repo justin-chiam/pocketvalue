@@ -52,8 +52,8 @@ All Gemini-backed endpoints return `400` for invalid input and `500` when the Ge
 
 ```bash
 cd mobile
-npm install
-npm start
+npm i
+npm expo start
 ```
 
 Scan the QR code with Expo Go on your phone. The app derives the backend host from the Metro bundle and assumes the API runs on port 3001 of the same machine (phone and laptop must share a Wi-Fi network). Set `EXPO_PUBLIC_API_URL` to point elsewhere, for example `http://192.168.1.20:3001`.
@@ -64,7 +64,7 @@ The mobile flow is: capture front/back photos and optionally an About-screen pho
 
 ```bash
 cd frontend
-npm install
+npm i
 npm run dev
 ```
 
