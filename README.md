@@ -132,3 +132,7 @@ The Vite app exposes the branded landing page at `/`. There is no web app workfl
 ### Linting & CI
 
 Run `npm run lint` in `backend/` and `frontend/`. Typecheck with `npm run typecheck` in `backend/` and `frontend/`, and `npx tsc --noEmit` in `mobile/`. A GitHub Actions workflow (`.github/workflows/lint.yml`) lints backend and frontend on pushes to `main` and on pull requests.
+
+### Acknowledgements
+
+Made with ❤️ by Justin, Benji, and Lemuel
