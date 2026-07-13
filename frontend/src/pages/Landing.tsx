@@ -458,7 +458,12 @@ function Landing() {
       <header className="nav">
         <div className="nav-inner">
           <span className="wordmark">PocketValue</span>
-          <a href="#how" className="nav-cta">
+          <a
+            href="https://github.com/justin-chiam/pocketvalue/blob/main/README.md#backend-setup"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="nav-cta"
+          >
             Try it
           </a>
         </div>
@@ -477,7 +482,12 @@ function Landing() {
             resell, trade in, donate, or recycle.
           </p>
           <div className="hero-actions">
-            <a href="#how" className="cta">
+            <a
+              href="https://github.com/justin-chiam/pocketvalue/blob/main/README.md#backend-setup"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cta"
+            >
               Try it
               <ArrowRight weight="bold" aria-hidden="true" />
             </a>
@@ -738,7 +748,12 @@ function Landing() {
       <section className="closing" data-reveal>
         <Camera size={40} weight="light" aria-hidden="true" />
         <h2>Point your camera at that old device and find out what it's worth.</h2>
-        <a href="#how" className="cta">
+        <a
+          href="https://github.com/justin-chiam/pocketvalue/blob/main/README.md#backend-setup"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="cta"
+        >
           Try it
           <ArrowRight weight="bold" aria-hidden="true" />
         </a>
