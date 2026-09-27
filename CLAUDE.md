@@ -1,4 +1,4 @@
-# hackathon
+# PocketValue
 
 Monorepo with separate `backend`, `frontend`, and `mobile` apps, no shared root package.json. The frontend is a landing page only; the product workflow is mobile-only. Run commands from within each subdirectory.
 
